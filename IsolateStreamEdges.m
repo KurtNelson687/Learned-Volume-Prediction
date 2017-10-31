@@ -2,78 +2,65 @@
 % enhancing, finding edges, dilating/smoothing edges, and filling in the
 % stream.
 
+% parameters 
+WidthThresh = 20; % threshold width of stream
+
 % create structure to store new data
+RedStreamIm = struct('cdata',zeros(size(S(100).cdata(:,:,1)),'uint8'),'colormap',[]);
 BinaryStreamIm = Sp;
 Lsi2 = 0;
 TtlPix = 0;
 
-for i = 1:size(Sp,2)
+% Get background image to remove
+Iback = squeeze(S(QCdata.indexes(2)).cdata(:,:,1));
+
+% % Row indices to pull length scales from
+% dr = ceil(size(Iback,1)/3/100);  % row index interval
+% rowi  = 5:dr:size(Iback,1)/3;    % ~ 100 rows of data
+rowi = ceil(size(Iback,1)/8);  % pull the length scale from 1/8th from top 
+
+% Column limit to search for bright areas
+coli = ceil(size(Iback,2)/3);  % chop left third of image
+
+% loop through 1 frames after the start to finish of stream
+cnt  = 0; % number of Lengths recorded
+L2i  = 0; % initiate L squared
+iter = 0; % number of loops performed (index for storing) 
+Lall = nan(QCdata.indexes(4)-QCdata.indexes(3),1);
+Lrow = nan(QCdata.indexes(4)-QCdata.indexes(3),size(Iback,1));
+
+for i = QCdata.indexes(3)+1:QCdata.indexes(4)
+    iter = iter+1;
+    
     % pull individual frame
-    Imi = squeeze(Sp(i).cdata);
+    Imi = squeeze(S(i).cdata(:,:,1)); % Red of RGB image
     
-    % enhance by making black or white
-    Imi(Imi>=contrastThresh) = 256; % black  
-    Imi(Imi<contrastThresh)  = 0;   % white
-
-    % Find Edges
-    Imi = edge(Imi,'Canny',.95);
+    % Remove background image
+    Imi = Iback - Imi;
+        
+    % Find width of bright areas passed ruler
+    ind  = find(Imi(rowi,coli:end)<contrastThresh);
+    dind = diff(ind);
     
-    % dilate edges
-    Imi = imdilate(Imi, [se90 se0]);
-
-    % make whole first row true so a hole is detected
-    Imi(1,:)=true;
+    % Pull the widest area in the row cross-section (presumably the stream)
+    Li   = max(dind);
     
-    % fill in the holes
-    Imi = imfill(Imi, 'holes');
+    % Only include widths greater than threshold value
+    if Li < WidthThresh
+        continue % don't add anything to the mean
+    else
+        L2i = L2i + Li^2;
+        cnt = cnt + 1;
+        Lall(iter) = Li;
+    end
     
-    % count number of white (1) pixels in each row
-    Lsi = sum(Imi(2:end,:),2); % don't include 1st row. false 1s.
-
-    % sum and square the length
-    Lsi2 = Lsi2 + mean(Lsi.^2);
+    % Store widths of all bright areas
+    Lrow(iter,1:length(dind)) = dind;
     
-    % count total number of pixels
-    TtlPix = TtlPix + sum(sum(Imi(2:end,:)));
-
     % Store Final image
-    BinaryStreamIm(i).cdata = Imi;
+    RedStreamIm(iter).cdata = Imi;
 
 end
 
-Ls2 = Lsi2/i; % the average of averages of L^2 (units: pixels^2)
-
-% Make more contrasted. 
-Im1en = Im1o;
-Im2en = Im2o;
-Im1en(Im1o>=contrastThresh) = 256;    Im1en(Im1o<contrastThresh) = 0;
-Im2en(Im2o>=contrastThresh) = 256;    Im2en(Im2o<contrastThresh) = 0;
-% 0:   black
-% 256: white (stream and noise)
-
-
-%% Find Edges
-BW1 = edge(Im1en,'Canny',.95);
-BW2 = edge(Im2en,'Canny',.95);
-
-%% Dilate the image (for 2 images, this section takes .7 seconds)
-BW1dil = imdilate(BW1, [se90 se0]);
-BW2dil = imdilate(BW2, [se90 se0]);
-
-BW1dil(1,:)=true;
-BW2dil(1,:)=true;
-
-%% fill holes
-BW1fill = imfill(BW1dil, 'holes');
-BW2fill = imfill(BW2dil, 'holes');
-
-%% Calculate width of stream per row (in pixel units)
-% count number of white (1) pixels in each row
-Ls21 = sum(BW1fill(2:end,:),2); % don't include 1st row. false 1s.
-Ls22 = sum(BW2fill(2:end,:),2);
-
-% Square the value and take average per frame
-Ls21save = mean(Ls21.^2);
-Ls22save = mean(Ls22.^2);
-
+Ls2 = L2i/cnt; % the average L^2 (units: pixels^2)
 
