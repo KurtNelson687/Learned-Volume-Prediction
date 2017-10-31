@@ -79,8 +79,8 @@ for numFig = 1:numel(QCdata)
     axes(ha(2))
     imshow(QCdata(numFig).BW2fill)
     
-    print(['./Figures/eps/StartCheck2/EndFrames' num2str(count)],'-depsc')
-    print(['./Figures/jpegs/StartCheck2/EndFrames' num2str(count)],'-djpeg','-r600')
+    print(['./Figures/eps/StartCheck2/EndFrames' num2str(movieNum)],'-depsc')
+    print(['./Figures/jpegs/StartCheck2/EndFrames' num2str(movieNum)],'-djpeg','-r600')
     
     count = count+1;
     close all;

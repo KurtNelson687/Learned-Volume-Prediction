@@ -2,10 +2,6 @@
 % enhancing, finding edges, dilating/smoothing edges, and filling in the
 % stream.
 
-% parameters for dilation
-se90 = strel('line', 3, 90);
-se0  = strel('line', 3, 0);
-
 % create structure to store new data
 BinaryStreamIm = Sp;
 Lsi2 = 0;

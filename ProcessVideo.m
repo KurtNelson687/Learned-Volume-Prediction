@@ -24,11 +24,21 @@ valPaperThresh    = 25;  % threshold: finding frame when paper label is moving
 valMinThresh      = 2;   % threshold: finding point after paper label leaves view but before stream
 streamEndThresh   = 1.8; % threshold: when stream ends
 
+% Values for ruler calculation
+rulerLength = 4;
+redTol = 50;
+running = 30;
+
 % Threshold value for increasing contast
 contrastThresh = 12;
 
+% parameters for dilation
+se90 = strel('line', 3, 90);
+se0  = strel('line', 3, 0);
+
+
 % Video Folder location
-video_folder = '../FirstFilmSesssion_Oct24/'; %folder storing videos
+video_folder = './FirstFilmSesssion_Oct24/'; %folder storing videos
 
 
 %% Locate Videos to be processed
@@ -37,9 +47,9 @@ movies = dir([video_folder '*.MOV']); % all *.MOV files
 
 %%
 
-%for movieNum = 1:numel(movies)
+for movieNum = 1:numel(movies)
 % for movieNum = 1  %%%%%%%uncomment this and comment next line when done
-movieNum = 1;
+%movieNum = 1;
 
 PullFramesFromMov; 
 % stores frames in a structure (S: grayscale; Sp: invert of S)
@@ -52,7 +62,6 @@ FindStartStopIndices;
 % QCdata(movieNum).indexes: contains indices
 % Saves frames buffering stream start and stop events.
 % QCdata(movieNum).Im## holds each image
-
 
 RemoveBackground;
 % Rewrites Sp after removing background from each frame
@@ -71,10 +80,12 @@ toc
 %% Save images for QC check of front speed calculation
 QCdata(movieNum).BW1fill = BW1fill;
 QCdata(movieNum).BW2fill = BW2fill;
+
+%% Finds length of pixel
+FindPixelLength
+% Finds length of pixel
+
 %% Compute front speed
-%__________Need to find length per pixel______
-lenPerPix = 1;
-%_____________________________________________
 [m1,n1] = find(BW1fill==1);
 [m2,n2] = find(BW2fill==1);
 pixDif  = max(m2)-max(m1);
@@ -114,5 +125,13 @@ subplot(1,6,5);imshow(BW2dil);title('Dilated Canny Edges')
 subplot(1,6,6);imshow(BW2fill);title('Filled Edges')
 end
 %%
-% end
+ end
 toc
+
+if saveQCdata
+    save('QCdata.mat','QCdata')
+end
+
+if saveFeatures
+     save('FitData.mat','X','y')
+end
