@@ -57,5 +57,5 @@ plot(xRight,1:length(xRight),'r','linewidth',1)
 
 clear xRightNans xRight temp
 
-print(['./Figures/eps/RulerCheck/RulerLength' num2str(movieNum)],'-depsc')
-print(['./Figures/jpegs/RulerCheck/RulerLength' num2str(movieNum)],'-djpeg','-r600')
+% print(['./Figures/eps/RulerCheck/RulerLength' num2str(movieNum)],'-depsc')
+% print(['./Figures/jpegs/RulerCheck/RulerLength' num2str(movieNum)],'-djpeg','-r600')

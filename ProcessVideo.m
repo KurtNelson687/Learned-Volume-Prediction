@@ -29,8 +29,11 @@ rulerLength = 4;
 redTol = 50;
 running = 30;
 
-% Threshold value for increasing contast
-contrastThresh = 12;
+% Threshold value for increasing contrast
+contrastThresh = 15;
+% threshold width of stream
+WidthThresh = 10; 
+
 
 % parameters for dilation
 se90 = strel('line', 3, 90);
@@ -38,7 +41,7 @@ se0  = strel('line', 3, 0);
 
 
 % Video Folder location
-video_folder = './FirstFilmSesssion_Oct24/'; %folder storing videos
+video_folder = '../../FirstFilmSesssion_Oct24/'; %folder storing videos
 
 
 %% Locate Videos to be processed
@@ -67,14 +70,9 @@ RemoveBackground;
 % Rewrites Sp after removing background from each frame
 % stores 1st 2 stream frames Im1o and Im2o for plotting
 
-tic
 IsolateStreamEdges;
-% contrasts the stream, finds edges, and fills in holes. Also stores the
-% average length scale (pixels) squared, and the total number of pixels: Ls2 and TtlPix 
-% Final images are stored in new structure, BinaryStreamIm
-% stores Im#en, BW#, BW#dil, BW#fill, Ls21ave, Ls22ave for plotting
-
-toc
+% average length scale (pixels) squared: Ls2 
+% Final images are stored in new structure, RedStreamIm
 
 
 %% Save images for QC check of front speed calculation
@@ -95,13 +93,15 @@ frontSpeed = pixDif*lenPerPix/dt;
 %% Convert length squared to true length
 Ls2true = Ls2*lenPerPix^2;
 
+%% Calculate Volume Proxy (interaction term)
+Vol = Ls2true*frontSpeed*(indE1-indS1)*dt;
 
 
 %% Create feature matrix X and output vector y
 X(movieNum,1) = (indE1-indS1)*dt; %first column of X is stream duration
 X(movieNum,2) = frontSpeed; %second column of X is front speed
 X(movieNum,3) = Ls2true; % third column of X is a representative length scale
-X(movieNum,4) = TtlPix; %fourth column of X total occupied pixels during pouring after threshold
+X(movieNum,4) = Vol; %fourth column of X theoretical volume estimate 
 
 %%__________Fill y vector______
 y(movieNum) = NaN;

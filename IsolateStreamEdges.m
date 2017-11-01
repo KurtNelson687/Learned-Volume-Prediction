@@ -2,9 +2,6 @@
 % enhancing, finding edges, dilating/smoothing edges, and filling in the
 % stream.
 
-% parameters 
-WidthThresh = 20; % threshold width of stream
-
 % create structure to store new data
 RedStreamIm = struct('cdata',zeros(size(S(100).cdata(:,:,1)),'uint8'),'colormap',[]);
 BinaryStreamIm = Sp;
@@ -12,24 +9,28 @@ Lsi2 = 0;
 TtlPix = 0;
 
 % Get background image to remove
-Iback = squeeze(S(QCdata.indexes(2)).cdata(:,:,1));
+Iback = squeeze(S(QCdata(movieNum).indexes(2)).cdata(:,:,1));
 
 % % Row indices to pull length scales from
-% dr = ceil(size(Iback,1)/3/100);  % row index interval
-% rowi  = 5:dr:size(Iback,1)/3;    % ~ 100 rows of data
-rowi = ceil(size(Iback,1)/8);  % pull the length scale from 1/8th from top 
+VertRatio = 2.2; % only analyze top 1/VertRatio of frame
+NumLines  = 20; % approximate number of lines to take lengths from
+dr = ceil(size(Iback,1)/VertRatio/NumLines);  % row index interval
+rowi  = 5:dr:size(Iback,1)/VertRatio;    % ~ 100 rows of data
+% rowi = [ceil(size(Iback,1)/8),500];  % pull the length scale from 1/8th from top 
 
 % Column limit to search for bright areas
 coli = ceil(size(Iback,2)/3);  % chop left third of image
 
 % loop through 1 frames after the start to finish of stream
-cnt  = 0; % number of Lengths recorded
+cnti  = 0; % number of frame Lengths recorded
+cntj  = 0; % number of cs-cut Lengths recorded
 L2i  = 0; % initiate L squared
 iter = 0; % number of loops performed (index for storing) 
-Lall = nan(QCdata.indexes(4)-QCdata.indexes(3),1);
-Lrow = nan(QCdata.indexes(4)-QCdata.indexes(3),size(Iback,1));
+Lall = nan(QCdata(movieNum).indexes(4)-QCdata(movieNum).indexes(3),length(rowi)); 
+Lrow = nan(QCdata(movieNum).indexes(4)-QCdata(movieNum).indexes(3),length(rowi),size(Iback,1));
+points = nan(QCdata(movieNum).indexes(4)-QCdata(movieNum).indexes(3),length(rowi),2); % start and end points in line of stream
 
-for i = QCdata.indexes(3)+1:QCdata.indexes(4)
+for i = QCdata(movieNum).indexes(3)+1:QCdata(movieNum).indexes(4)
     iter = iter+1;
     
     % pull individual frame
@@ -37,30 +38,71 @@ for i = QCdata.indexes(3)+1:QCdata.indexes(4)
     
     % Remove background image
     Imi = Iback - Imi;
+   
+    cntj = 0;
+    L2j  = 0; % initiate L squared for frame average
+    % Find width of bright areas passed ruler (can maybe vectorize)
+    for j=1:length(rowi)
+        % find areas outsie of bright parts
+        ind  = find(Imi(rowi(j),coli:end) < contrastThresh);
+        % find gap between the dark areas (width of bright area)
+        dind = diff(ind);
         
-    % Find width of bright areas passed ruler
-    ind  = find(Imi(rowi,coli:end)<contrastThresh);
-    dind = diff(ind);
-    
-    % Pull the widest area in the row cross-section (presumably the stream)
-    Li   = max(dind);
-    
-    % Only include widths greater than threshold value
-    if Li < WidthThresh
-        continue % don't add anything to the mean
-    else
-        L2i = L2i + Li^2;
-        cnt = cnt + 1;
-        Lall(iter) = Li;
+        % Pull the widest area in the row cross-section (presumably the stream)
+        [Lj,mind]   = max(dind); % length for the jth cut in the ith frame
+        
+        % Record start and stop location of width line recorded
+        points(iter,j,:) = [coli+ind(mind),coli+ind(mind+1)];
+        
+        % Only include widths greater than threshold value
+        if Lj < WidthThresh
+            continue % don't add anything to the mean
+        else
+            L2j = L2j + Lj^2;
+            cntj = cntj + 1;
+            Lall(iter,j) = Lj;
+        end
+        
+        % Store widths of all bright areas
+        Lrow(iter,j,1:length(dind)) = dind;
+
     end
     
-    % Store widths of all bright areas
-    Lrow(iter,1:length(dind)) = dind;
+    % only add frame-average to total average if lengths were recorded
+    if cntj==0
+        continue
+    else
+        L2i = L2i + L2j/cntj; % add the average of the j cuts to the running frame average
+        cnti = cnti+1;
+    end
     
     % Store Final image
     RedStreamIm(iter).cdata = Imi;
 
 end
 
-Ls2 = L2i/cnt; % the average L^2 (units: pixels^2)
+Ls2 = L2i/cnti; % the average L^2 (units: pixels^2)
 
+% Make more contrasted. 
+Im1en = Im1o;
+Im2en = Im2o;
+Im1en(Im1o>=contrastThresh) = 256;    Im1en(Im1o<contrastThresh) = 0;
+Im2en(Im2o>=contrastThresh) = 256;    Im2en(Im2o<contrastThresh) = 0;
+% 0:   black
+% 256: white (stream and noise)
+
+
+%% Find Edges
+BW1 = edge(Im1en,'Canny',.95);
+BW2 = edge(Im2en,'Canny',.95);
+
+%% Dilate the image (for 2 images, this section takes .7 seconds)
+BW1dil = imdilate(BW1, [se90 se0]);
+BW2dil = imdilate(BW2, [se90 se0]);
+
+BW1dil(1,:)=true;
+BW2dil(1,:)=true;
+
+%% fill holes
+BW1fill = imfill(BW1dil, 'holes');
+BW2fill = imfill(BW2dil, 'holes');
