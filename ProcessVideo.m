@@ -32,7 +32,7 @@ running = 30;
 % Threshold value for increasing contrast
 contrastThresh = 15;
 % threshold width of stream
-WidthThresh = 10; 
+WidthThresh = 10;  %%%%%% change this to cm and add upper limit in isolateStream
 
 
 % parameters for dilation
