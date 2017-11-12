@@ -2,32 +2,33 @@
 % enhancing, finding edges, dilating/smoothing edges, and filling in the
 % stream.
 
+% convert threshold limit from cm to pixels
+PixWidthLow  = WidthThreshLow/lenPerPix;  % pixels, lower limit of lengths to include
+PixWidthHigh = WidthThreshHigh/lenPerPix; % pixels, upper limit of lengths. only flag if bigger than this
+
 % create structure to store new data
 RedStreamIm = struct('cdata',zeros(size(S(100).cdata(:,:,1)),'uint8'),'colormap',[]);
-BinaryStreamIm = Sp;
-Lsi2 = 0;
-TtlPix = 0;
 
 % Get background image to remove
 Iback = squeeze(S(QCdata(movieNum).indexes(2)).cdata(:,:,1));
 
-% % Row indices to pull length scales from
+% Row indices to pull length scales from
 VertRatio = 2.2; % only analyze top 1/VertRatio of frame
 NumLines  = 20; % approximate number of lines to take lengths from
-dr = ceil(size(Iback,1)/VertRatio/NumLines);  % row index interval
-rowi  = 5:dr:size(Iback,1)/VertRatio;    % ~ 100 rows of data
-% rowi = [ceil(size(Iback,1)/8),500];  % pull the length scale from 1/8th from top 
+dr    = ceil(size(Iback,1)/VertRatio/NumLines);  % row index interval
+rowi  = 5:dr:size(Iback,1)/VertRatio; % row indices to take length samples from  
 
 % Column limit to search for bright areas
-coli = ceil(size(Iback,2)/3);  % chop left third of image
+coli = ceil(size(Iback,2)/3);  % chop left third of image (change based on set up)
 
 % loop through 1 frames after the start to finish of stream
 cnti  = 0; % number of frame Lengths recorded
 cntj  = 0; % number of cs-cut Lengths recorded
-L2i  = 0; % initiate L squared
-iter = 0; % number of loops performed (index for storing) 
-Lall = nan(QCdata(movieNum).indexes(4)-QCdata(movieNum).indexes(3),length(rowi)); 
-Lrow = nan(QCdata(movieNum).indexes(4)-QCdata(movieNum).indexes(3),length(rowi),size(Iback,1));
+cntf  = 0; % number of flags to count. flag for a large stream width
+L2i   = 0; % initiate L squared
+iter  = 0; % number of loops performed (index for storing) 
+Lall  = nan(QCdata(movieNum).indexes(4)-QCdata(movieNum).indexes(3),length(rowi)); 
+Lrow  = nan(QCdata(movieNum).indexes(4)-QCdata(movieNum).indexes(3),length(rowi),size(Iback,1));
 points = nan(QCdata(movieNum).indexes(4)-QCdata(movieNum).indexes(3),length(rowi),2); % start and end points in line of stream
 
 for i = QCdata(movieNum).indexes(3)+1:QCdata(movieNum).indexes(4)
@@ -55,9 +56,14 @@ for i = QCdata(movieNum).indexes(3)+1:QCdata(movieNum).indexes(4)
         points(iter,j,:) = [coli+ind(mind),coli+ind(mind+1)];
         
         % Only include widths greater than threshold value
-        if Lj < WidthThresh
+        if Lj < PixWidthLow
             continue % don't add anything to the mean
         else
+            if Lj > PixWidthHigh
+                cntf = cntf +1;
+                LengthFlag.(sprintf('%s',['MovieNum',num2str(movieNum)])).frameNum(cntf) = i;
+                LengthFlag.(sprintf('%s',['MovieNum',num2str(movieNum)])).LengthCM(cntf) = Lj*lenPerPix;
+            end
             L2j = L2j + Lj^2;
             cntj = cntj + 1;
             Lall(iter,j) = Lj;

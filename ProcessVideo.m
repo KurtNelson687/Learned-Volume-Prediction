@@ -12,8 +12,8 @@ tic
 %% Define parameters for processing video
 % Flags
 plotImages   = false; % plot images
-saveQCdata   = true;  % save QC data
-saveFeatures = true;  % save X and y, which contain features and responses
+saveQCdata   = false;  % save QC data
+saveFeatures = false;  % save X and y, which contain features and responses
 
 Nave = 5; % number of frames to averge over for background subtraction
 
@@ -32,8 +32,8 @@ running = 30;
 % Threshold value for increasing contrast
 contrastThresh = 15;
 % threshold width of stream
-WidthThresh = 10;  %%%%%% change this to cm and add upper limit in isolateStream
-
+WidthThreshLow  = .12;  % cm, lower limit of lengths to include
+WidthThreshHigh = 3;   % cm, upper limit of lengths. only flag if bigger than this
 
 % parameters for dilation
 se90 = strel('line', 3, 90);
@@ -41,7 +41,7 @@ se0  = strel('line', 3, 0);
 
 
 % Video Folder location
-video_folder = '../../FirstFilmSesssion_Oct24/'; %folder storing videos
+video_folder = './FirstFilmSesssion_Oct24/'; %folder storing videos
 
 
 %% Locate Videos to be processed
@@ -50,8 +50,7 @@ movies = dir([video_folder '*.MOV']); % all *.MOV files
 
 %%
 
-for movieNum = 1:numel(movies)
-% for movieNum = 1  %%%%%%%uncomment this and comment next line when done
+for movieNum = 1%:numel(movies)
 %movieNum = 1;
 
 PullFramesFromMov; 
@@ -70,6 +69,9 @@ RemoveBackground;
 % Rewrites Sp after removing background from each frame
 % stores 1st 2 stream frames Im1o and Im2o for plotting
 
+FindPixelLength
+% Finds length of pixel
+
 IsolateStreamEdges;
 % average length scale (pixels) squared: Ls2 
 % Final images are stored in new structure, RedStreamIm
@@ -79,9 +81,6 @@ IsolateStreamEdges;
 QCdata(movieNum).BW1fill = BW1fill;
 QCdata(movieNum).BW2fill = BW2fill;
 
-%% Finds length of pixel
-FindPixelLength
-% Finds length of pixel
 
 %% Compute front speed
 [m1,n1] = find(BW1fill==1);
