@@ -9,11 +9,14 @@ cuppcm3 = .00422675; % cups per cm^3
 Vol = pi/4*X(:,4)*cuppcm3;
 
 figure;
-subplot(4,1,1);plot(X(:,1),'k');ylabel('Duration (s)')
-subplot(4,1,2);plot(X(:,2),'k');ylabel('Speed (cm/s)')
-subplot(4,1,3);plot(X(:,3),'k');ylabel('L^2_{ave} (cm^2)')
-subplot(4,1,4);plot(Vol,'k');ylabel('Volume Proxy (cups)')
-               xlabel('Movie Number')
+subplot(5,1,1);plot(X(:,1),'k');ylabel('Duration (s)')
+subplot(5,1,2);plot(X(:,2),'k');ylabel('Speed (cm/s)')
+subplot(5,1,3);plot(X(:,3),'k');ylabel('L^2_{ave} (cm^2)')
+subplot(5,1,4);plot((Vol'-y)./y,'k');ylabel('% Error for Vol')
+
+scale = mean(y'./Vol);
+subplot(5,1,5);plot((scale*Vol'-y)./y,'k');ylabel('% Error for Scaled Vol')
+xlabel('Movie Number')
 
 
 

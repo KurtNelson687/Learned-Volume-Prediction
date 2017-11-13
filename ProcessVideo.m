@@ -41,7 +41,7 @@ se0  = strel('line', 3, 0);
 
 
 % Video Folder location
-video_folder = '../../FirstFilmSesssion_Oct24/'; %folder storing videos
+video_folder = './FirstFilmSesssion_Oct24/'; %folder storing videos
 
 
 %% Locate Videos to be processed
@@ -49,7 +49,7 @@ movies = dir([video_folder '*.MOV']); % all *.MOV files
 
 
 %%
-
+ytemp = [0.25,0.5,0.5,0.5,0.5,0.75,0.75,0.75,0.75,0.75,1,1,1];
 for movieNum = 1:numel(movies)
 % for movieNum = 1  %%%%%%%uncomment this and comment next line when done
 %movieNum = 1;
@@ -104,7 +104,7 @@ X(movieNum,3) = Ls2true; % third column of X is a representative length scale
 X(movieNum,4) = Vol; %fourth column of X theoretical volume estimate 
 
 %%__________Fill y vector______
-y(movieNum) = NaN;
+y(movieNum) = ytemp(movieNum);
 %%______________________________
 
 
