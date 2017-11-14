@@ -11,9 +11,9 @@ tic
 
 %% Define parameters for processing video
 % Flags
-plotImages   = false; % plot images
-saveQCdata   = false;  % save QC data
-saveFeatures = false;  % save X and y, which contain features and responses
+plotImages   = true; % plot images
+saveQCdata   = true;  % save QC data
+saveFeatures = true;  % save X and y, which contain features and responses
 
 Nave = 5; % number of frames to averge over for background subtraction
 
@@ -51,7 +51,7 @@ movies = dir([video_folder '*.MOV']); % all *.MOV files
 %%
 %ytemp = [0.25,0.5,0.5,0.5,0.5,0.75,0.75,0.75,0.75,0.75,1,1,1];
 ytemp = ones(numel(movies),1);
-for movieNum = 1%1:numel(movies)
+for movieNum = 1:numel(movies)
 %movieNum = 1;
 
 PullFramesFromMov; 
