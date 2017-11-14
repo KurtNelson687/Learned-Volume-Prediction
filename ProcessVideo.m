@@ -41,7 +41,7 @@ se0  = strel('line', 3, 0);
 
 
 % Video Folder location
-video_folder = './FirstFilmSesssion_Oct24/'; %folder storing videos
+video_folder = './FilmSesssion_Nov13/'; %folder storing videos
 
 
 %% Locate Videos to be processed
@@ -49,8 +49,9 @@ movies = dir([video_folder '*.MOV']); % all *.MOV files
 
 
 %%
-ytemp = [0.25,0.5,0.5,0.5,0.5,0.75,0.75,0.75,0.75,0.75,1,1,1];
-for movieNum = 1:numel(movies)
+%ytemp = [0.25,0.5,0.5,0.5,0.5,0.75,0.75,0.75,0.75,0.75,1,1,1];
+ytemp = ones(numel(movies),1);
+for movieNum = 1%1:numel(movies)
 %movieNum = 1;
 
 PullFramesFromMov; 

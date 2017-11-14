@@ -54,6 +54,7 @@ axes(ha(2))
 imshow(runningMaxBack)
 hold
 plot(xRight,1:length(xRight),'r','linewidth',1)
+tapeColumnInd = xRight(tape2Start);
 
 clear xRightNans xRight temp
 

@@ -19,7 +19,7 @@ dr    = ceil(size(Iback,1)/VertRatio/NumLines);  % row index interval
 rowi  = 5:dr:size(Iback,1)/VertRatio; % row indices to take length samples from  
 
 % Column limit to search for bright areas
-coli = ceil(size(Iback,2)/3);  % chop left third of image (change based on set up)
+coli = tapeColumnInd;  % chop left third of image (change based on set up)
 
 % loop through 1 frames after the start to finish of stream
 cnti  = 0; % number of frame Lengths recorded
