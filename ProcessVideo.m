@@ -41,7 +41,7 @@ se0  = strel('line', 3, 0);
 
 
 % Video Folder location
-video_folder = './FilmSesssion_Nov13/'; %folder storing videos
+video_folder = './FilmSession_Nov13/'; %folder storing videos
 
 
 %% Locate Videos to be processed
