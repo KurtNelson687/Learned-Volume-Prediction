@@ -30,7 +30,7 @@ redTol = 50;
 running = 30;
 
 % Threshold value for increasing contrast
-contrastThresh = 15;
+contrastThresh = 30; %this was 15
 % threshold width of stream
 WidthThreshLow  = .12;  % cm, lower limit of lengths to include
 WidthThreshHigh = 3;   % cm, upper limit of lengths. only flag if bigger than this

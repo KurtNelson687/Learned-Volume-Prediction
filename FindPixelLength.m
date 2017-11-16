@@ -58,5 +58,5 @@ tapeColumnInd = xRight(tape2Start);
 
 clear xRightNans xRight temp
 
-% print(['./Figures/eps/RulerCheck/RulerLength' num2str(movieNum)],'-depsc')
-% print(['./Figures/jpegs/RulerCheck/RulerLength' num2str(movieNum)],'-djpeg','-r600')
+ print(['./Figures/eps/RulerCheck/RulerLength' num2str(movieNum)],'-depsc')
+ print(['./Figures/jpegs/RulerCheck/RulerLength' num2str(movieNum)],'-djpeg','-r600')
