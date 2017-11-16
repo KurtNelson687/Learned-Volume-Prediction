@@ -19,7 +19,7 @@ dr    = ceil(size(Iback,1)/VertRatio/NumLines);  % row index interval
 rowi  = 5:dr:size(Iback,1)/VertRatio; % row indices to take length samples from  
 
 % Column limit to search for bright areas
-coli = tapeColumnInd;  % chop left third of image (change based on set up)
+coli = tapeColumnInd + 80;  % chop left third of image (change based on set up)
 
 % loop through 1 frames after the start to finish of stream
 cnti  = 0; % number of frame Lengths recorded
@@ -46,6 +46,9 @@ for i = QCdata(movieNum).indexes(3)+1:QCdata(movieNum).indexes(4)
     for j=1:length(rowi)
         % find areas outsie of bright parts
         ind  = find(Imi(rowi(j),coli:end) < contrastThresh);
+        if isempty(ind)
+            continue
+        else
         % find gap between the dark areas (width of bright area)
         dind = diff(ind);
         
@@ -59,7 +62,7 @@ for i = QCdata(movieNum).indexes(3)+1:QCdata(movieNum).indexes(4)
         if Lj < PixWidthLow
             continue % don't add anything to the mean
         else
-            if Lj > PixWidthHigh
+            if Lj > PixWidthHigh % make flag of movie number and frame with big length
                 cntf = cntf +1;
                 LengthFlag.(sprintf('%s',['MovieNum',num2str(movieNum)])).frameNum(cntf) = i;
                 LengthFlag.(sprintf('%s',['MovieNum',num2str(movieNum)])).LengthCM(cntf) = Lj*lenPerPix;
@@ -71,7 +74,8 @@ for i = QCdata(movieNum).indexes(3)+1:QCdata(movieNum).indexes(4)
         
         % Store widths of all bright areas
         Lrow(iter,j,1:length(dind)) = dind;
-
+        end
+        
     end
     
     % only add frame-average to total average if lengths were recorded
