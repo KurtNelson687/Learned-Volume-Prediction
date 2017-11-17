@@ -46,7 +46,7 @@ for i = QCdata(movieNum).indexes(3)+1:QCdata(movieNum).indexes(4)
     for j=1:length(rowi)
         % find areas outsie of bright parts
         ind  = find(Imi(rowi(j),coli:end) < contrastThresh);
-        if isempty(ind)
+        if isempty(ind)|| length(ind)==1
             continue
         else
         % find gap between the dark areas (width of bright area)

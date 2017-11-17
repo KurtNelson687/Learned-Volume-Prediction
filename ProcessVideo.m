@@ -5,8 +5,8 @@ clear;clc;close all
 tic
 % 1 Add description
 % 2 Convert to function? flages, movie location, make feature set, and
-%   plotting outside of function. 
-% 3 in each sub-script, turn into function and only output needed variables 
+%   plotting outside of function.
+% 3 in each sub-script, turn into function and only output needed variables
 % 4 to make faster, don't store all edge frames, just store feature info from each
 
 %% Define parameters for processing video
@@ -30,7 +30,7 @@ redTol = 50;
 running = 30;
 
 % Threshold value for increasing contrast
-contrastThresh = 30; %this was 15
+contrastThresh = 15; %this was 15
 % threshold width of stream
 WidthThreshLow  = .12;  % cm, lower limit of lengths to include
 WidthThreshHigh = 3;   % cm, upper limit of lengths. only flag if bigger than this
@@ -43,95 +43,141 @@ se0  = strel('line', 3, 0);
 % Video Folder location
 video_folder = './FilmSession_Nov13/'; %folder storing videos
 
-
 %% Locate Videos to be processed
-movies = dir([video_folder '*.MOV']); % all *.MOV files  
+movies = dir([video_folder '*.MOV']); % all *.MOV files
 
 
 %%
 %ytemp = [0.25,0.5,0.5,0.5,0.5,0.75,0.75,0.75,0.75,0.75,1,1,1];
-ytemp = ones(numel(movies),1);
-for movieNum = 1:numel(movies)
-%movieNum = 1;
+ytemp = [ones(7,1)*0.25; ones(7,1)*0.5; ones(7,1)*0.75; ones(12,1)*1;...
+    ones(12,1)*1.25; ones(13,1)*1.5; ones(15,1)*1.75; ones(14,1)*2; ones(15,1)*2.25;...
+    ones(12,1)*2.5; ones(7,1)*0.25; ones(5,1)*0.5; ones(5,1)*0.75];
 
-PullFramesFromMov; 
-% stores frames in a structure (S: grayscale; Sp: invert of S)
-% QCdata.SpDiffNorm: norm of difference between consecutive frames
-
-
-FindStartStopIndices;
-% Finds 1st 2 frames of stream in view and last frame of stream in view
-% indS1, indS2, indE1, respectively.
-% QCdata(movieNum).indexes: contains indices
-% Saves frames buffering stream start and stop events.
-% QCdata(movieNum).Im## holds each image
-
-RemoveBackground;
-% Rewrites Sp after removing background from each frame
-% stores 1st 2 stream frames Im1o and Im2o for plotting
-
-FindPixelLength
-% Finds length of pixel
-
-IsolateStreamEdges;
-% average length scale (pixels) squared: Ls2 
-% Final images are stored in new structure, RedStreamIm
-
-
-%% Save images for QC check of front speed calculation
-QCdata(movieNum).BW1fill = BW1fill;
-QCdata(movieNum).BW2fill = BW2fill;
-
-
-%% Compute front speed
-[m1,n1] = find(BW1fill==1);
-[m2,n2] = find(BW2fill==1);
-pixDif  = max(m2)-max(m1);
-frontSpeed = pixDif*lenPerPix/dt;
-
-
-%% Convert length squared to true length
-Ls2true = Ls2*lenPerPix^2;
-
-%% Calculate Volume Proxy (interaction term)
-Vol = Ls2true*frontSpeed*(indE1-indS1)*dt;
-
-
-%% Create feature matrix X and output vector y
-X(movieNum,1) = (indE1-indS1)*dt; %first column of X is stream duration
-X(movieNum,2) = frontSpeed; %second column of X is front speed
-X(movieNum,3) = Ls2true; % third column of X is a representative length scale
-X(movieNum,4) = Vol; %fourth column of X theoretical volume estimate 
-
-%%__________Fill y vector______
-y(movieNum) = ytemp(movieNum);
-%%______________________________
-
-
-if plotImages
-figure;
-subplot(1,2,1);imshow(QCdata(movieNum).Im1);
-title('original images')
-subplot(1,2,2);imshow(QCdata(movieNum).Im2);
-
-figure;imshow(ImAve);title('5-frame Average')
-
-figure;
-subplot(1,6,1);imshow(QCdata(movieNum).Im2);title('Original Image Inverted')
-subplot(1,6,2);imshow(Im2o);title('Background Removed')
-subplot(1,6,3);imshow(Im2en);title('Enhanced')
-subplot(1,6,4);imshow(BW2);title('Canny Edge Detection of Enhanced')
-subplot(1,6,5);imshow(BW2dil);title('Dilated Canny Edges')
-subplot(1,6,6);imshow(BW2fill);title('Filled Edges')
+for movieNum = 74:numel(movies)
+    %movieNum = 1:2;
+    
+    PullFramesFromMov;
+    % stores frames in a structure (S: grayscale; Sp: invert of S)
+    % QCdata.SpDiffNorm: norm of difference between consecutive frames
+    
+    
+    FindStartStopIndices;
+    % Finds 1st 2 frames of stream in view and last frame of stream in view
+    % indS1, indS2, indE1, respectively.
+    % QCdata(movieNum).indexes: contains indices
+    % Saves frames buffering stream start and stop events.
+    % QCdata(movieNum).Im## holds each image
+    
+    RemoveBackground;
+    % Rewrites Sp after removing background from each frame
+    % stores 1st 2 stream frames Im1o and Im2o for plotting
+    
+    FindPixelLength
+    QCdata(movieNum).lenPerPix = lenPerPix;
+    % Finds length of pixel
+    
+    IsolateStreamEdges;
+    % average length scale (pixels) squared: Ls2
+    % Final images are stored in new structure, RedStreamIm
+    
+    
+    %% Save images for QC check of front speed calculation
+    QCdata(movieNum).BW1fill = BW1fill;
+    QCdata(movieNum).BW2fill = BW2fill;
+    
+    
+    %% Compute front speed
+    [m1,n1] = find(BW1fill==1);
+    [m2,n2] = find(BW2fill==1);
+    pixDif  = max(m2)-max(m1);
+    frontSpeed = pixDif*lenPerPix/dt;
+    
+    
+    %% Convert length squared to true length
+    Ls2true = Ls2*lenPerPix^2;
+    
+    %% Calculate Volume Proxy (interaction term)
+    Vol = Ls2true*frontSpeed*(indE1-indS1)*dt;
+    
+    
+    %% Create feature matrix X and output vector y
+    X(movieNum,1) = (indE1-indS1)*dt; %first column of X is stream duration
+    X(movieNum,2) = frontSpeed; %second column of X is front speed
+    X(movieNum,3) = Ls2true; % third column of X is a representative length scale
+    X(movieNum,4) = Vol; %fourth column of X theoretical volume estimate
+    
+    %%__________Fill y vector______
+    y(movieNum) = ytemp(movieNum);
+    %%______________________________
+    
+    
+    if plotImages
+        %Figure for stream start/stop check
+        Fig1 = figure('visible', 'off');
+        subplot(2,2,1);imshow(QCdata(movieNum).Im0);
+        subplot(2,2,2);imshow(QCdata(movieNum).Im1);
+        subplot(2,2,3);imshow(QCdata(movieNum).ImE1);
+        subplot(2,2,4); 
+        P = QCdata(movieNum).SpDiffNorm;
+        plot(P);
+        hold
+        plot(QCdata(movieNum).indexes(3),P(QCdata(movieNum).indexes(3)),'.g','markersize',20)
+        plot(QCdata(movieNum).indexes(4),P(QCdata(movieNum).indexes(4)),'.g','markersize',20)
+        ylab = ylabel('$\Delta$ Intensity');
+        set(ylab,'interpreter','Latex','FontSize',10)
+        xlab = xlabel('Frame');
+        set(xlab,'interpreter','Latex','FontSize',10)
+            
+        print(['./Figures/jpegs/DurationCheck/durationCheck' movies(movieNum).name(end-7:end-4)],...
+            '-djpeg','-r600')
+        
+        %Figure for velocity check
+        fig2 = figure('visible', 'off');
+        subplot(2,2,1);imshow(QCdata(movieNum).Im1);
+        subplot(2,2,2);imshow(QCdata(movieNum).Im2);
+        subplot(2,2,3);imshow(BW1fill);
+        subplot(2,2,4);imshow(BW2fill);
+        print(['./Figures/jpegs/VelocityCheck/velCheck' movies(movieNum).name(end-7:end-4)],...
+            '-djpeg','-r600')
+        
+        %Figure for ruler check
+        fig3 = figure('visible', 'off');
+        fig.PaperUnits = 'centimeters';
+        fig.PaperPosition = [0 0 8 7];
+        set(gca,'box','on')
+        clf
+        ha = tight_subplot(1,2,[0.03 .02],[.07 .04],[.06 .05]);
+        
+        axes(ha(1));
+        imshow(S(QCdata(movieNum).indexes(2)).cdata)
+        hold
+        plot([xRight(tape1End) xRight(tape2Start)],[tape1End tape2Start],'b','linewidth',1)
+        
+        axes(ha(2));
+        imshow(runningMaxBack)
+        hold
+        plot(xRight,1:length(xRight),'r','linewidth',1)
+        print(['./Figures/jpegs/RulerCheck/RulerLength' movies(movieNum).name(end-7:end-4)],'-djpeg','-r600')
+        
+        %figure;imshow(ImAve);title('5-frame Average')
+        
+        % figure;
+        % subplot(1,6,1);imshow(QCdata(movieNum).Im2);title('Original Image Inverted')
+        % subplot(1,6,2);imshow(Im2o);title('Background Removed')
+        % subplot(1,6,3);imshow(Im2en);title('Enhanced')
+        % subplot(1,6,4);imshow(BW2);title('Canny Edge Detection of Enhanced')
+        % subplot(1,6,5);imshow(BW2dil);title('Dilated Canny Edges')
+        % subplot(1,6,6);imshow(BW2fill);title('Filled Edges')
+        close all;
+    end
+    %%
 end
-%%
- end
 toc
 
 if saveQCdata
-    save('QCdata.mat','QCdata')
+    save('QCdata1.mat','QCdata')
 end
 
 if saveFeatures
-     save('FitData.mat','X','y')
+    save('FitData1.mat','X','y')
 end
