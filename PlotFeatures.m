@@ -2,7 +2,7 @@
 % increasing with volume)
 close all; clear all;
 load('FitData.mat')
-load('moveLabel.mat')
+load('movieLabel.mat')
 
 %badData gives movie numbers that will be removed. 
 badData = [8443; 8446; 8447; 8457; 8458;...
@@ -28,7 +28,8 @@ for i = 1:length(movieLabel)
     end
 end
 
-%Replace bad data with NaN's
+%Replace bad data with NaN's - keep NaN values in though to retrain
+%proper indexing for identify bad features. 
 X(badInd,:)=NaN;
 y(badInd)=NaN;
 
