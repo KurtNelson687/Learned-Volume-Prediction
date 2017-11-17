@@ -159,15 +159,6 @@ for movieNum = 74:numel(movies)
         plot(xRight,1:length(xRight),'r','linewidth',1)
         print(['./Figures/jpegs/RulerCheck/RulerLength' movies(movieNum).name(end-7:end-4)],'-djpeg','-r600')
         
-        %figure;imshow(ImAve);title('5-frame Average')
-        
-        % figure;
-        % subplot(1,6,1);imshow(QCdata(movieNum).Im2);title('Original Image Inverted')
-        % subplot(1,6,2);imshow(Im2o);title('Background Removed')
-        % subplot(1,6,3);imshow(Im2en);title('Enhanced')
-        % subplot(1,6,4);imshow(BW2);title('Canny Edge Detection of Enhanced')
-        % subplot(1,6,5);imshow(BW2dil);title('Dilated Canny Edges')
-        % subplot(1,6,6);imshow(BW2fill);title('Filled Edges')
         close all;
     end
     %%
@@ -175,9 +166,9 @@ end
 toc
 
 if saveQCdata
-    save('QCdata1.mat','QCdata')
+    save('QCdata.mat','QCdata')
 end
 
 if saveFeatures
-    save('FitData1.mat','X','y')
+    save('FitData.mat','X','y')
 end
