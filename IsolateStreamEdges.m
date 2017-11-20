@@ -1,10 +1,10 @@
 % This script isolates the stream by finding the edges of the stream after
 % enhancing, finding edges, dilating/smoothing edges, and filling in the
 % stream.
-
+function[Ls2,RedStreamIm,QCdata] = IsolateStreamEdges(S, QCdata, movieNum, WidthThreshLow,WidthThreshHigh,contrastThresh,tapeColumnInd,se90,se0,Im1o,Im2o)
 % convert threshold limit from cm to pixels
-PixWidthLow  = WidthThreshLow/lenPerPix;  % pixels, lower limit of lengths to include
-PixWidthHigh = WidthThreshHigh/lenPerPix; % pixels, upper limit of lengths. only flag if bigger than this
+PixWidthLow  = WidthThreshLow/QCdata(movieNum).lenPerPix;  % pixels, lower limit of lengths to include
+PixWidthHigh = WidthThreshHigh/QCdata(movieNum).lenPerPix; % pixels, upper limit of lengths. only flag if bigger than this
 
 % create structure to store new data
 RedStreamIm = struct('cdata',zeros(size(S(100).cdata(:,:,1)),'uint8'),'colormap',[]);
@@ -116,3 +116,8 @@ BW2dil(1,:)=true;
 %% fill holes
 BW1fill = imfill(BW1dil, 'holes');
 BW2fill = imfill(BW2dil, 'holes');
+
+    %% Save images for QC check of front speed calculation
+QCdata(movieNum).BW1fill = BW1fill;
+QCdata(movieNum).BW2fill = BW2fill;
+

@@ -1,3 +1,5 @@
+
+function[lenPerPix,tapeColumnInd,xRight,tape1End,tape2Start,runningMaxBack] = FindPixelLength(S,QCdata,movieNum,rulerLength)
 runningMax = 30; %number of frames to look over for running max
 redTol = 50; %threshold: defining stream start
 

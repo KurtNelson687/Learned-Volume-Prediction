@@ -1,5 +1,6 @@
 % this script pulls all of the frames from the .mov file and stores them in
 % a 2 structures. S is a grayscale of original, and Sp is the inverse of S.
+function[S, Sp, QCdata, dt] = PullFramesFromMov(video_folder,movieNum,movies)
 
 disp(['Movie ' num2str(movieNum) ' out of ' num2str(numel(movies))])
 

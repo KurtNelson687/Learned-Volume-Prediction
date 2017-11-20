@@ -11,9 +11,9 @@ tic
 
 %% Define parameters for processing video
 % Flags
-plotImages   = true; % plot images
-saveQCdata   = true;  % save QC data
-saveFeatures = true;  % save X and y, which contain features and responses
+plotImages   = true;  % plot images
+saveQCdata   = false;  % save QC data
+saveFeatures = false;  % save X and y, which contain features and responses
 
 Nave = 5; % number of frames to averge over for background subtraction
 
@@ -53,55 +53,48 @@ ytemp = [ones(7,1)*0.25; ones(7,1)*0.5; ones(7,1)*0.75; ones(12,1)*1;...
     ones(12,1)*1.25; ones(13,1)*1.5; ones(15,1)*1.75; ones(14,1)*2; ones(15,1)*2.25;...
     ones(12,1)*2.5; ones(7,1)*0.25; ones(5,1)*0.5; ones(5,1)*0.75];
 
-for movieNum = 74:numel(movies)
+for movieNum = 2%74:numel(movies)
     %movieNum = 1:2;
     
-    PullFramesFromMov;
+    [S, Sp, QCdata, dt] = PullFramesFromMov(video_folder,movieNum,movies);
     % stores frames in a structure (S: grayscale; Sp: invert of S)
     % QCdata.SpDiffNorm: norm of difference between consecutive frames
     
     
-    FindStartStopIndices;
+    [QCdata] = FindStartStopIndices(S,QCdata,movieNum,valPaperThresh,valMinThresh,numStartThresh,streamStartThresh,streamEndThresh);
     % Finds 1st 2 frames of stream in view and last frame of stream in view
     % indS1, indS2, indE1, respectively.
     % QCdata(movieNum).indexes: contains indices
     % Saves frames buffering stream start and stop events.
     % QCdata(movieNum).Im## holds each image
     
-    RemoveBackground;
+    [Sp,Im1o,Im2o] = RemoveBackground(S, Sp, QCdata, movieNum, Nave);
     % Rewrites Sp after removing background from each frame
     % stores 1st 2 stream frames Im1o and Im2o for plotting
     
-    FindPixelLength
+    [lenPerPix,tapeColumnInd,xRight,tape1End,tape2Start,runningMaxBack] = FindPixelLength(S,QCdata,movieNum,rulerLength);
     QCdata(movieNum).lenPerPix = lenPerPix;
     % Finds length of pixel
     
-    IsolateStreamEdges;
+    [Ls2,RedStreamIm,QCdata] = IsolateStreamEdges(S, QCdata, movieNum, WidthThreshLow,WidthThreshHigh,contrastThresh,tapeColumnInd,se90,se0,Im1o,Im2o);
     % average length scale (pixels) squared: Ls2
     % Final images are stored in new structure, RedStreamIm
     
     
-    %% Save images for QC check of front speed calculation
-    QCdata(movieNum).BW1fill = BW1fill;
-    QCdata(movieNum).BW2fill = BW2fill;
-    
-    
     %% Compute front speed
-    [m1,n1] = find(BW1fill==1);
-    [m2,n2] = find(BW2fill==1);
+    [m1,n1] = find(QCdata(movieNum).BW1fill==1);
+    [m2,n2] = find(QCdata(movieNum).BW2fill==1);
     pixDif  = max(m2)-max(m1);
     frontSpeed = pixDif*lenPerPix/dt;
-    
     
     %% Convert length squared to true length
     Ls2true = Ls2*lenPerPix^2;
     
     %% Calculate Volume Proxy (interaction term)
-    Vol = Ls2true*frontSpeed*(indE1-indS1)*dt;
-    
+    Vol = Ls2true*frontSpeed*(QCdata(movieNum).indexes(4)-QCdata(movieNum).indexes(3))*dt;
     
     %% Create feature matrix X and output vector y
-    X(movieNum,1) = (indE1-indS1)*dt; %first column of X is stream duration
+    X(movieNum,1) = (QCdata(movieNum).indexes(4)-QCdata(movieNum).indexes(3))*dt; %first column of X is stream duration
     X(movieNum,2) = frontSpeed; %second column of X is front speed
     X(movieNum,3) = Ls2true; % third column of X is a representative length scale
     X(movieNum,4) = Vol; %fourth column of X theoretical volume estimate
@@ -113,14 +106,14 @@ for movieNum = 74:numel(movies)
     
     if plotImages
         %Figure for stream start/stop check
-        Fig1 = figure('visible', 'off');
+        Fig1 = figure;%('visible', 'off');
         subplot(2,2,1);imshow(QCdata(movieNum).Im0);
         subplot(2,2,2);imshow(QCdata(movieNum).Im1);
         subplot(2,2,3);imshow(QCdata(movieNum).ImE1);
         subplot(2,2,4); 
         P = QCdata(movieNum).SpDiffNorm;
         plot(P);
-        hold
+        hold on;
         plot(QCdata(movieNum).indexes(3),P(QCdata(movieNum).indexes(3)),'.g','markersize',20)
         plot(QCdata(movieNum).indexes(4),P(QCdata(movieNum).indexes(4)),'.g','markersize',20)
         ylab = ylabel('$\Delta$ Intensity');
@@ -128,20 +121,20 @@ for movieNum = 74:numel(movies)
         xlab = xlabel('Frame');
         set(xlab,'interpreter','Latex','FontSize',10)
             
-        print(['./Figures/jpegs/DurationCheck/durationCheck' movies(movieNum).name(end-7:end-4)],...
-            '-djpeg','-r600')
+%         print(['./Figures/jpegs/DurationCheck/durationCheck' movies(movieNum).name(end-7:end-4)],...
+%             '-djpeg','-r600')
         
         %Figure for velocity check
-        fig2 = figure('visible', 'off');
+        fig2 = figure;%('visible', 'off');
         subplot(2,2,1);imshow(QCdata(movieNum).Im1);
         subplot(2,2,2);imshow(QCdata(movieNum).Im2);
         subplot(2,2,3);imshow(BW1fill);
         subplot(2,2,4);imshow(BW2fill);
-        print(['./Figures/jpegs/VelocityCheck/velCheck' movies(movieNum).name(end-7:end-4)],...
-            '-djpeg','-r600')
+%         print(['./Figures/jpegs/VelocityCheck/velCheck' movies(movieNum).name(end-7:end-4)],...
+%             '-djpeg','-r600')
         
         %Figure for ruler check
-        fig3 = figure('visible', 'off');
+        fig3 = figure;%('visible', 'off');
         fig.PaperUnits = 'centimeters';
         fig.PaperPosition = [0 0 8 7];
         set(gca,'box','on')
@@ -150,16 +143,16 @@ for movieNum = 74:numel(movies)
         
         axes(ha(1));
         imshow(S(QCdata(movieNum).indexes(2)).cdata)
-        hold
+        hold on;
         plot([xRight(tape1End) xRight(tape2Start)],[tape1End tape2Start],'b','linewidth',1)
         
         axes(ha(2));
         imshow(runningMaxBack)
-        hold
+        hold on;
         plot(xRight,1:length(xRight),'r','linewidth',1)
-        print(['./Figures/jpegs/RulerCheck/RulerLength' movies(movieNum).name(end-7:end-4)],'-djpeg','-r600')
+%         print(['./Figures/jpegs/RulerCheck/RulerLength' movies(movieNum).name(end-7:end-4)],'-djpeg','-r600')
         
-        close all;
+%         close all;
     end
     %%
 end
