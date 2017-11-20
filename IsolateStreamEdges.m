@@ -1,7 +1,7 @@
 % This script isolates the stream by finding the edges of the stream after
 % enhancing, finding edges, dilating/smoothing edges, and filling in the
 % stream.
-function[Ls2,RedStreamIm,QCdata] = IsolateStreamEdges(S, QCdata, movieNum, WidthThreshLow,WidthThreshHigh,contrastThresh,tapeColumnInd,se90,se0,Im1o,Im2o)
+function[Ls2,RedStreamIm,QCdata,Lall,rowi,coli,points] = IsolateStreamEdges(S, QCdata, movieNum, WidthThreshLow,WidthThreshHigh,contrastThresh,tapeColumnInd,se90,se0,Im1o,Im2o)
 % convert threshold limit from cm to pixels
 PixWidthLow  = WidthThreshLow/QCdata(movieNum).lenPerPix;  % pixels, lower limit of lengths to include
 PixWidthHigh = WidthThreshHigh/QCdata(movieNum).lenPerPix; % pixels, upper limit of lengths. only flag if bigger than this

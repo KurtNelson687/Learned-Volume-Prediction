@@ -26,8 +26,8 @@ streamEndThresh   = 1.8; % threshold: when stream ends
 
 % Values for ruler calculation
 rulerLength = 4;
-redTol = 50;
-running = 30;
+redTol      = 50;
+running     = 30;
 
 % Threshold value for increasing contrast
 contrastThresh = 15; %this was 15
@@ -53,7 +53,7 @@ ytemp = [ones(7,1)*0.25; ones(7,1)*0.5; ones(7,1)*0.75; ones(12,1)*1;...
     ones(12,1)*1.25; ones(13,1)*1.5; ones(15,1)*1.75; ones(14,1)*2; ones(15,1)*2.25;...
     ones(12,1)*2.5; ones(7,1)*0.25; ones(5,1)*0.5; ones(5,1)*0.75];
 
-for movieNum = 2%74:numel(movies)
+for movieNum = 23%74:numel(movies)
     %movieNum = 1:2;
     
     [S, Sp, QCdata, dt] = PullFramesFromMov(video_folder,movieNum,movies);
@@ -76,7 +76,7 @@ for movieNum = 2%74:numel(movies)
     QCdata(movieNum).lenPerPix = lenPerPix;
     % Finds length of pixel
     
-    [Ls2,RedStreamIm,QCdata] = IsolateStreamEdges(S, QCdata, movieNum, WidthThreshLow,WidthThreshHigh,contrastThresh,tapeColumnInd,se90,se0,Im1o,Im2o);
+    [Ls2,RedStreamIm,QCdata,Lall,rowi,coli,points] = IsolateStreamEdges(S, QCdata, movieNum, WidthThreshLow,WidthThreshHigh,contrastThresh,tapeColumnInd,se90,se0,Im1o,Im2o);
     % average length scale (pixels) squared: Ls2
     % Final images are stored in new structure, RedStreamIm
     
@@ -128,8 +128,8 @@ for movieNum = 2%74:numel(movies)
         fig2 = figure;%('visible', 'off');
         subplot(2,2,1);imshow(QCdata(movieNum).Im1);
         subplot(2,2,2);imshow(QCdata(movieNum).Im2);
-        subplot(2,2,3);imshow(BW1fill);
-        subplot(2,2,4);imshow(BW2fill);
+        subplot(2,2,3);imshow(QCdata(movieNum).BW1fill);
+        subplot(2,2,4);imshow(QCdata(movieNum).BW2fill);
 %         print(['./Figures/jpegs/VelocityCheck/velCheck' movies(movieNum).name(end-7:end-4)],...
 %             '-djpeg','-r600')
         
