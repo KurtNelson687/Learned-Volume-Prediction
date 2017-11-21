@@ -3,11 +3,6 @@
 clear;clc;close all
 
 tic
-% 1 Add description
-% 2 Convert to function? flages, movie location, make feature set, and
-%   plotting outside of function.
-% 3 in each sub-script, turn into function and only output needed variables
-% 4 to make faster, don't store all edge frames, just store feature info from each
 
 %% Define parameters for processing video
 % Flags
@@ -30,10 +25,11 @@ redTol      = 50;
 running     = 30;
 
 % Threshold value for increasing contrast
-contrastThresh = 15; %this was 15
+contrastThresh = 15; 
+
 % threshold width of stream
 WidthThreshLow  = .12;  % cm, lower limit of lengths to include
-WidthThreshHigh = 3;   % cm, upper limit of lengths. only flag if bigger than this
+WidthThreshHigh = 3;    % cm, upper limit of lengths. only flag if bigger than this
 
 % parameters for dilation
 se90 = strel('line', 3, 90);
@@ -53,7 +49,6 @@ ytemp = [ones(7,1)*0.25; ones(7,1)*0.5; ones(7,1)*0.75; ones(12,1)*1;...
     ones(12,1)*2.5; ones(7,1)*0.25; ones(5,1)*0.5; ones(5,1)*0.75];
 
 for movieNum = 79%74:numel(movies)
-    %movieNum = 1:2;
     
     [S, Sp, QCdata, dt] = PullFramesFromMov(video_folder,movieNum,movies);
     % stores frames in a structure (S: grayscale; Sp: invert of S)
@@ -73,11 +68,14 @@ for movieNum = 79%74:numel(movies)
     
     [lenPerPix,tapeColumnInd,xRight,tape1End,tape2Start,runningMaxBack] = FindPixelLength(S,QCdata,movieNum,rulerLength);
     QCdata(movieNum).lenPerPix = lenPerPix;
-    % Finds length of pixel
+    % Finds length of pixel and location of ruler in frame
     
     [Ls2,RedStreamIm,QCdata,Lall,rowi,coli,points] = IsolateStreamEdges(S, QCdata, movieNum, WidthThreshLow,WidthThreshHigh,contrastThresh,tapeColumnInd,se90,se0,Im1o,Im2o);
     % average length scale (pixels) squared: Ls2
     % Final images are stored in new structure, RedStreamIm
+    % Lall, is the length from all frames and all cuts
+    % coli is column index to search to the right of. rowi is the row index
+    % of each slice to take a length from
     
     
     %% Compute front speed
@@ -89,20 +87,22 @@ for movieNum = 79%74:numel(movies)
     %% Convert length squared to true length
     Ls2true = Ls2*lenPerPix^2;
     
+    %% Calculate Duration
+    Duration = (QCdata(movieNum).indexes(4)-QCdata(movieNum).indexes(3))*dt;
+    
     %% Calculate Volume Proxy (interaction term)
-    Vol = Ls2true*frontSpeed*(QCdata(movieNum).indexes(4)-QCdata(movieNum).indexes(3))*dt;
+    Vol = Ls2true*frontSpeed*Duration;
     
     %% Create feature matrix X and output vector y
-    X(movieNum,1) = (QCdata(movieNum).indexes(4)-QCdata(movieNum).indexes(3))*dt; %first column of X is stream duration
+    X(movieNum,1) = Duration; %first column of X is stream duration
     X(movieNum,2) = frontSpeed; %second column of X is front speed
     X(movieNum,3) = Ls2true; % third column of X is a representative length scale
     X(movieNum,4) = Vol; %fourth column of X theoretical volume estimate
     
-    %%__________Fill y vector______
+    %% Fill y vector
     y(movieNum) = ytemp(movieNum);
-    %%______________________________
     
-    
+    %% Plot: start/stop frames, velocity edges used, ruler calibration
     if plotImages
         %Figure for stream start/stop check
         Fig1 = figure;%('visible', 'off');
