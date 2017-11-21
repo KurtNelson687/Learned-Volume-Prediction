@@ -4,6 +4,8 @@ close all; clear;
 load('FitData_KN.mat')
 load('movieLabel.mat')
 
+saveGoodData = true; % choose whether to save reduced data set
+
 %badData gives movie numbers that will be removed. 
 badData = [8443; 8446; 8447; 8457; 8458;...
     8461; 8462; 8463; 8467; 8472; 8476;...
@@ -27,16 +29,21 @@ for i = 1:length(movieLabel)
         count2 = count2+1;
     end
 end
+% create subsets of data. useable and nonusable 
+Xbad = X(badInd,:);
+ybad = y(badInd);
+
+Xgood = X(goodInd,:);
+ygood = y(goodInd);
+MovLabelgood = movieLabel(goodInd);
 
 %Replace bad data with NaN's - keep NaN values in though to retrain
 %proper indexing for identify bad features. 
-Xbad = X(badInd,:);
-ybad = y(badInd);
 X(badInd,:) = NaN;
 y(badInd)   = NaN;
 
 cuppcm3 = .00422675;      % cups per cm^3
-Vol = pi/4*X(:,4)*cuppcm3;
+Vol     = pi/4*X(:,4)*cuppcm3;
 
 scale = nanmean(y'./Vol); % Scaling for physics prediction
 yPhs  = scale*Vol;
@@ -104,6 +111,13 @@ for i = 1:4
     end
 end
 
+
+%% save good data set
+if saveGoodData
+    % add intercept term
+    Xgood = [ones(size(Xgood(:,1))),Xgood];
+    save('FitData_usable.mat','Xgood','ygood','MovLabelgood')
+end
 
 
 

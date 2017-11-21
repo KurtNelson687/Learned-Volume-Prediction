@@ -39,7 +39,6 @@ WidthThreshHigh = 3;   % cm, upper limit of lengths. only flag if bigger than th
 se90 = strel('line', 3, 90);
 se0  = strel('line', 3, 0);
 
-
 % Video Folder location
 video_folder = './FilmSession_Nov13/'; %folder storing videos
 
@@ -53,7 +52,7 @@ ytemp = [ones(7,1)*0.25; ones(7,1)*0.5; ones(7,1)*0.75; ones(12,1)*1;...
     ones(12,1)*1.25; ones(13,1)*1.5; ones(15,1)*1.75; ones(14,1)*2; ones(15,1)*2.25;...
     ones(12,1)*2.5; ones(7,1)*0.25; ones(5,1)*0.5; ones(5,1)*0.75];
 
-for movieNum = 23%74:numel(movies)
+for movieNum = 79%74:numel(movies)
     %movieNum = 1:2;
     
     [S, Sp, QCdata, dt] = PullFramesFromMov(video_folder,movieNum,movies);
