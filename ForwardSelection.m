@@ -1,5 +1,7 @@
 clear;clc;close all;
-load('CleanedFitData.mat')
+load('FitData_usable.mat')
+X=Xgood(:,2:end);
+y=ygood;
 y = y';
 
 %Adds columns to X so that all second order terms of original features are included
@@ -41,12 +43,13 @@ set(xlab,'interpreter','Latex','FontSize',8)
 set(gca,'FontSize',6)
 leg = legend('Enforcing hierarchical principle', 'Unrestricted');
 set(leg,'interpreter','Latex','FontSize',6)
-print('./Figures/eps/WriteUp/featureSelection','-depsc')
-print('./Figures/jpegs/WriteUp/featureSelection','-djpeg','-r600')
+% print('./Figures/eps/WriteUp/featureSelection','-depsc')
+% print('./Figures/jpegs/WriteUp/featureSelection','-djpeg','-r600')
 
 %% Compute the mean squared error predicted from physics and model (note: for the model it should be the same as above)
 Xfeatures = X(:,[1;2;3;7;4]); %Extracting only features we want
 for i = 1:mAll
+    i
     %For physics prediction
     Vol = X(:,4);
     Vol(i)=NaN;
@@ -74,6 +77,37 @@ for i = 1:mAll
 end
 MSE_physics = mean(physicsError);
 MSE_model = mean(modelError);
+
+%% Compute the mean squared error predicted from physics and weighted Lin Reg. model
+for i = 1:mAll
+    i
+    %For physics prediction
+    Vol = X(:,4);
+    Vol(i)=NaN;
+    Vol = Vol(~isnan(Vol));
+    
+    ytrain = y;
+    ytrain(i)=NaN;
+    ytrain = ytrain(~isnan(ytrain));
+    
+    scale = nanmean(ytrain./Vol); %Scaling for physics prediction
+    yPhs = scale*X(i,4);
+    physicsError(i) = mean((y(i)-yPhs).^2);
+    
+    %For model
+    Xtrain = Xfeatures;
+    Xtrain(i,:)=NaN;
+    Xtrain = Xtrain(~isnan(Xtrain(:,1)),:);
+   
+    Xtest = Xfeatures(i,:);
+    
+     mdl = fitlm(Xtrain,ytrain,'linear','weights',ytrain);
+     ypredTest = predict(mdl,Xtest);
+     modelError(i) = mean((y(i)-ypredTest).^2);
+end
+MSE_physics = mean(physicsError);
+MSE_wtmodel = mean(modelError);
+
 %% Training vs test error for different dataset sizes for both physics and OLS prediction
 %%Here I am only using features 1 through 3, 7, and 4. These were selected
 %%based on the feature selection above
