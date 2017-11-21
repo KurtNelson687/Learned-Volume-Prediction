@@ -3,6 +3,7 @@
 close all; clear all;
 load('FitData.mat')
 load('movieLabel.mat')
+cuppcm3 = .00422675; % cups per cm^3
 
 %badData gives movie numbers that will be removed. 
 badData = [8443; 8446; 8447; 8457; 8458;...
@@ -61,10 +62,10 @@ subplot(3,1,3);plot(y,X(:,3),'*k');ylabel('L^2_{ave} (cm^2)');xlabel('cups');
 X = X(goodInd,:);
 y = y(goodInd);
 yPhs = yPhs(goodInd);
+X(:,end) = pi/4*X(:,end)*cuppcm3;
+save('CleanedFitData.mat','X','y')
 
 X = [ones(size(X,1),1),X];
-cuppcm3 = .00422675; % cups per cm^3
-X(:,end) = pi/4*X(:,end)*cuppcm3;
 
 % Ordinary least squares optimum theta
 theta = inv(X'*X)*X'*y';

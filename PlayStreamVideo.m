@@ -1,9 +1,4 @@
-load('RedStream.mat');
 
-
-%%
-hand = figure;
-filename = 'RedStream.gif';
 for i = 1:length(RedStreamIm)
     
     clf;
