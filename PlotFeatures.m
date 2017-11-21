@@ -1,9 +1,11 @@
 % this script plots each feature against video number (which should be
 % increasing with volume)
-close all; clear all;
-load('FitData.mat')
+close all; clear;
+load('FitData_KN.mat')
 load('movieLabel.mat')
 cuppcm3 = .00422675; % cups per cm^3
+
+saveGoodData = true; % choose whether to save reduced data set
 
 %badData gives movie numbers that will be removed. 
 badData = [8443; 8446; 8447; 8457; 8458;...
@@ -28,33 +30,44 @@ for i = 1:length(movieLabel)
         count2 = count2+1;
     end
 end
+% create subsets of data. useable and nonusable 
+Xbad = X(badInd,:);
+ybad = y(badInd);
+
+Xgood = X(goodInd,:);
+ygood = y(goodInd);
+MovLabelgood = movieLabel(goodInd);
 
 %Replace bad data with NaN's - keep NaN values in though to retrain
 %proper indexing for identify bad features. 
-X(badInd,:)=NaN;
-y(badInd)=NaN;
+X(badInd,:) = NaN;
+y(badInd)   = NaN;
 
-cuppcm3 = .00422675; % cups per cm^3
-Vol = pi/4*X(:,4)*cuppcm3;
+cuppcm3 = .00422675;      % cups per cm^3
+Vol     = pi/4*X(:,4)*cuppcm3;
 
-%% Feature plots
+scale = nanmean(y'./Vol); % Scaling for physics prediction
+yPhs  = scale*Vol;
+
+featureDescription = {'Duration (s)','Speed (cm/s)','L^2_{ave} (cm^2)',...
+                      'L^2*Speed*Duration'};
+
+%% Feature plots against label
 fig1 = figure;
-subplot(5,1,1);plot(X(:,1),'k');ylabel('Duration (s)');
-subplot(5,1,2);plot(X(:,2),'k');ylabel('Speed (cm/s)')
-subplot(5,1,3);plot(X(:,3),'k');ylabel('L^2_{ave} (cm^2)')
+for i = 1:size(X,2)-1
+    subplot(5,1,i);plot(X(:,i),'k');ylabel(featureDescription{i});
+end
 subplot(5,1,4);plot((Vol'-y)./y,'k');ylabel('% Error for Vol')
-
-scale = nanmean(y'./Vol); %Scaling for physics prediction
-yPhs = scale*Vol;
-
 subplot(5,1,5);plot((yPhs'-y)./y,'k');ylabel('% Error for Scaled Vol')
 xlabel('Movie Number')
 
 fig2 = figure;
-subplot(3,1,1);plot(y,X(:,1),'*k');ylabel('Duration (s)')
-subplot(3,1,2);plot(y,X(:,2),'*k');ylabel('Speed (cm/s)')
-subplot(3,1,3);plot(y,X(:,3),'*k');ylabel('L^2_{ave} (cm^2)');xlabel('cups');
-
+for i = 1:size(X,2)
+    subplot(2,2,i);plot(y,X(:,i),'*k');hold on;ylabel(featureDescription{i});
+                   plot(ybad,Xbad(:,i),'*r');
+end
+legend('Good Data','Bad Data','location','NW')
+xlabel('Actual Volume (cups)')
 
 %% Data fittig
 
@@ -76,7 +89,7 @@ yhat = X*theta;
 OLSerror = abs(yhat - y')./y'*100;
 meanOLSerror = mean(OLSerror);
 
-physicsError = abs(yPhs - y')./y'*100;
+physicsError = abs(yPhs - y')./y'*100; 
 meanPhysicsError = mean(physicsError);
 
 
@@ -85,3 +98,27 @@ fig3 = figure;
 plot(y,yhat,'.r',y,yPhs,'.b',[0, 2.5],[0 2.5],'k','markersize',10)
 xlabel('Measured Volume (cups)'); ylabel('Predicted Volume (cups)')
 leg = legend('Physics', 'OLS prediction');
+
+%% plot Features against each other
+
+figure;
+cnt = 0;
+for i = 1:4
+    for j = 1:4
+        cnt = cnt+1;
+        subplot(4,4,cnt);plot(X(:,i+1),X(:,j+1),'.k'); % X1 is intercept.
+        xlabel(['X',num2str(i)])
+        ylabel(['X',num2str(j)])
+    end
+end
+
+
+%% save good data set
+if saveGoodData
+    % add intercept term
+    Xgood = [ones(size(Xgood(:,1))),Xgood];
+    save('FitData_usable.mat','Xgood','ygood','MovLabelgood')
+end
+
+
+

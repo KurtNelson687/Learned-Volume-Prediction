@@ -1,5 +1,5 @@
 clear;clc;close all;
-load('QCdata')
+load('QCdata2.mat')
 
 fig1 = figure;
 fig1.PaperUnits = 'centimeters';
