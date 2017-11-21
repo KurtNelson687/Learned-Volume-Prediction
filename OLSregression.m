@@ -20,7 +20,6 @@ numKfold = mAll;
 featuresIn = [1,2,3]; %features forced to be included in fit
 
 opts = statset('display','iter');
-
 %Perform feature selection and require that all of the original features are included
 [fs1,history1] = sequentialfs(@OLSfit,X,y,'cv',numKfold,...
     'keepin',featuresIn,'nfeatures',nAll,'options',opts);
@@ -36,7 +35,7 @@ set(gca,'box','on')
 plot(length(featuresIn):nAll,history1.Crit,'linewidth',1)
 hold
 plot(1:nAll,history2.Crit,'linewidth',1)
-ylab = ylabel('MSE');
+ylab = ylabel('CV');
 set(ylab,'interpreter','Latex','FontSize',8)
 xlab = xlabel('Number of features');
 set(xlab,'interpreter','Latex','FontSize',8)
