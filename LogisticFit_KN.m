@@ -1,4 +1,4 @@
-function criterion = LogisticFit(X_train,y_train,X_test,y_test)
+function criterion = LogisticFit_KN(X_train,y_train,X_test,y_test)
  ypred = classify(X_test,X_train,y_train,'linear'); %this can be used for
 % what I believe is softmax
 

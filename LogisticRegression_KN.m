@@ -1,5 +1,11 @@
 clear;clc;close all;
-load('CleanedFitData.mat')
+% load('CleanedFitData.mat')
+load('FitData_usable.mat')
+
+%% create possible feature sets
+% Rename and remove intercept feature
+X=Xgood(:,2:end);
+y=ygood;
 y = y';
 
 %Adds columns to X so that all second order terms of original features are included
@@ -19,11 +25,11 @@ featuresIn = [1,2,3]; %features forced to be included in fit
 
 opts = statset('display','iter');
 %Perform feature selection and require that all of the original features are included
-[fs1,history1] = sequentialfs(@LogisticFit,X,y,'cv',numKfold,...
+[fs1,history1] = sequentialfs(@LogisticFit_KN,X,y,'cv',numKfold,...
     'keepin',featuresIn,'nfeatures',nAll,'options',opts);
 
 %Perform feature selection with no requirments
-[fs2,history2] = sequentialfs(@LogisticFit,X,y,'cv',numKfold,...
+[fs2,history2] = sequentialfs(@LogisticFit_KN,X,y,'cv',numKfold,...
     'nfeatures',nAll,'options',opts);
 
 fig1 = figure;%('visible', 'off');
@@ -40,8 +46,8 @@ set(xlab,'interpreter','Latex','FontSize',8)
 set(gca,'FontSize',6)
 leg = legend('Enforcing hierarchical principle', 'Unrestricted');
 set(leg,'interpreter','Latex','FontSize',6)
-print('./Figures/eps/WriteUp/featureSelectionLogistic','-depsc')
-print('./Figures/jpegs/WriteUp/featureSelectionLogistic','-djpeg','-r600')
+% print('./Figures/eps/WriteUp/featureSelectionLogistic','-depsc')
+% print('./Figures/jpegs/WriteUp/featureSelectionLogistic','-djpeg','-r600')
 
 %% Visualizing prediction errors
 Xfeatures = X(:,[1;2;3;9;7;8]); %Extracting only features we want
@@ -54,16 +60,16 @@ fig2 = figure;%('visible', 'off');
 fig2.PaperUnits = 'centimeters';
 fig2.PaperPosition = [0 0 8 4];
 set(gca,'box','on')
-plot(videoNum(predLogical),y(predLogical),'k.','markersize',5)
+plot(ypred(predLogical),y(predLogical),'k.','markersize',5)
 hold
-plot(videoNum(~predLogical),y(~predLogical),'r.','markersize',5)
+plot(ypred(~predLogical),y(~predLogical),'r.','markersize',5)
 
 ylab = ylabel('Poured volume (c)');
 set(ylab,'interpreter','Latex','FontSize',8)
-xlab = xlabel('Movie number');
+xlab = xlabel('Predicted volume (c)');
 set(xlab,'interpreter','Latex','FontSize',8)
 set(gca,'FontSize',6,'ylim',[0 3])
 %leg = legend('Correct classification', 'Incorrect classification');
 %set(leg,'interpreter','Latex','FontSize',6)
-print('./Figures/eps/WriteUp/classificationError','-depsc')
-print('./Figures/jpegs/WriteUp/classificationError','-djpeg','-r600')
+% print('./Figures/eps/WriteUp/classificationError','-depsc')
+% print('./Figures/jpegs/WriteUp/classificationError','-djpeg','-r600')
