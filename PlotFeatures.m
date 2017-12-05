@@ -1,23 +1,39 @@
 % this script plots each feature against video number (which should be
 % increasing with volume)
 close all; clear;
-load('FitData_KN.mat')
-load('movieLabel.mat')
+load('FitData_All.mat')
+load('movieLabel_All.mat')
+
 cuppcm3 = .00422675; % cups per cm^3
 
-saveGoodData = true; % choose whether to save reduced data set
+saveGoodData = false; % choose whether to save reduced data set
 
-%badData gives movie numbers that will be removed. 
-badData = [8443; 8446; 8447; 8457; 8458;...
-    8461; 8462; 8463; 8467; 8472; 8476;...
-    8486; 8489; 8490; 8496; 8502;...
-    8507; 8509; 8510; 8511; 8513; 8520;...
-    8524; 8530; 8538; 8559; 8571];
+%badData gives movie numbers that will be removed.
+badData = [8443; 8446; 8447; 8457;...
+    8463; 8467; 8476;...
+    8486; 8489; 8490; 8502;...
+    8510; 8511; 8513; 8520;...
+    8524; 8530; 8538; 8559; 8571; 8376;
+    8528; 8529; ...
+    8658; 8662; 8666; 8669; 8671; 8672;...
+    8674; 8686; 8695; 8699;8704; 8706;...
+    8708; 8709; 8710; 8724; 8725; 8729; 8733; 8734; 8735;...
+    8738; 8740; 8741; 8746; 8747; 8750; 8737];
 
-%Errors associated with a incorrect ruler, front velocity, and length scale are below 
+%From first filming 8376
+%Consider removing  8526; 8541;
+%Errors associated with a incorrect ruler, front velocity, and length scale are below
 %Bad ruler = 8458; 8461; 8462; 8472; 8496; 8507; 8509; 8510 (bad start too)
 %Bad velocity = 8476; 8486; 8489; 8490; 8520 (bad start too); 8559;
 %Bad length scale = 8513; 8511; 8463; 8446;
+
+%From 3rd Filming
+%Bad ruler = none
+%Bad velocity = 8658; 8662; 8666; 8669; 8671; 8672; 8674; 8686; 8695; 8699;
+%8704; 8706; 8708; 8709; 8710; 8724; 8725; 8735; 8741; 8746; 8747; 8750;
+%8737;
+%Bad length scale =
+%Bad duration = 8729; 8733; 8734; 8735; 8738; 8740 8747; 8750;
 %% Data Cleaning - finds indicies for good and bad data
 count =1;
 count2 = 1;
@@ -30,7 +46,7 @@ for i = 1:length(movieLabel)
         count2 = count2+1;
     end
 end
-% create subsets of data. useable and nonusable 
+% create subsets of data. useable and nonusable
 Xbad = X(badInd,:);
 ybad = y(badInd);
 
@@ -39,7 +55,7 @@ ygood = y(goodInd);
 MovLabelgood = movieLabel(goodInd);
 
 %Replace bad data with NaN's - keep NaN values in though to retrain
-%proper indexing for identify bad features. 
+%proper indexing for identify bad features.
 X(badInd,:) = NaN;
 y(badInd)   = NaN;
 
@@ -50,7 +66,7 @@ scale = nanmean(y'./Vol); % Scaling for physics prediction
 yPhs  = scale*Vol;
 
 featureDescription = {'Duration (s)','Speed (cm/s)','L^2_{ave} (cm^2)',...
-                      'L^2*Speed*Duration'};
+    'L^2*Speed*Duration'};
 
 %% Feature plots against label
 fig1 = figure;
@@ -64,9 +80,9 @@ xlabel('Movie Number')
 fig2 = figure;
 for i = 1:size(X,2)
     subplot(2,2,i);plot(y,X(:,i),'*k');hold on;ylabel(featureDescription{i});
-                   plot(ybad,Xbad(:,i),'*r');
+    plot(ybad,Xbad(:,i),'*r');
 end
-legend('Good Data','Bad Data','location','NW')
+legend('Good Data','Bad Data','First Filming','location','NW')
 xlabel('Actual Volume (cups)')
 
 %% Data fittig
@@ -76,8 +92,6 @@ X = X(goodInd,:);
 y = y(goodInd);
 yPhs = yPhs(goodInd);
 X(:,end) = pi/4*X(:,end)*cuppcm3;
-save('CleanedFitData.mat','X','y')
-
 X = [ones(size(X,1),1),X];
 
 % Ordinary least squares optimum theta
@@ -89,15 +103,15 @@ yhat = X*theta;
 OLSerror = abs(yhat - y')./y'*100;
 meanOLSerror = mean(OLSerror);
 
-physicsError = abs(yPhs - y')./y'*100; 
+physicsError = abs(yPhs - y')./y'*100;
 meanPhysicsError = mean(physicsError);
 
 
 %% Prediction plots
 fig3 = figure;
-plot(y,yhat,'.r',y,yPhs,'.b',[0, 2.5],[0 2.5],'k','markersize',10)
+plot(y,yhat,'.b',y,yPhs,'.r',[0, 2.5],[0 2.5],'k','markersize',10)
 xlabel('Measured Volume (cups)'); ylabel('Predicted Volume (cups)')
-leg = legend('Physics', 'OLS prediction');
+leg = legend('OLS prediction','Physics');
 
 %% plot Features against each other
 
@@ -113,11 +127,36 @@ for i = 1:4
 end
 
 
-%% save good data set
+%% split and save test and training data
+
+%sort data
+[y, ind] = sort(y);
+X = X(ind,:);
+uniqueY = unique(y);
+
+% Find two random indices for each unique volume tested
+for i = 1:length(uniqueY)
+     numSample(i) = length(find(y == uniqueY(i)));
+     tempInd = randsample(numSample(i),2)+find(y == uniqueY(i),1, 'first')-1;
+     if i == 1
+        testInd = tempInd;
+     else
+         testInd = [testInd; tempInd];
+     end
+end
+
+% Split data into traning and test data
+trainInd = true(length(y),1);
+trainInd(testInd)=false;
+X_test = X(testInd,:);
+y_test = y(testInd);
+movieLabel_test = movieLabel(testInd);
+X_train = X(trainInd,:);
+y_train = y(trainInd);
+movieLabel_train = movieLabel(trainInd);
+
 if saveGoodData
-    % add intercept term
-    Xgood = [ones(size(Xgood(:,1))),Xgood];
-    save('FitData_usable.mat','Xgood','ygood','MovLabelgood')
+    save('data.mat','X_train','y_train','X_test','y_test','movieLabel_train','movieLabel_test')
 end
 
 

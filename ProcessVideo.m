@@ -1,7 +1,7 @@
 % This code is modelled after './ProcessPourVideo.m'
 % it takes a list of movies and creates a feature set and response vector
 clear;clc;close all
-
+%25 and 28
 tic
 
 %% Define parameters for processing video
@@ -36,7 +36,7 @@ se90 = strel('line', 3, 90);
 se0  = strel('line', 3, 0);
 
 % Video Folder location
-video_folder = './FilmSession_Nov13/'; %folder storing videos
+video_folder = './FilmSession_Dec2/'; %folder storing videos
 
 %% Locate Videos to be processed
 movies = dir([video_folder '*.MOV']); % all *.MOV files
@@ -44,13 +44,19 @@ movies = dir([video_folder '*.MOV']); % all *.MOV files
 
 %%
 %ytemp = [0.25,0.5,0.5,0.5,0.5,0.75,0.75,0.75,0.75,0.75,1,1,1];
-ytemp = [ones(7,1)*0.25; ones(7,1)*0.5; ones(7,1)*0.75; ones(12,1)*1;...
-    ones(12,1)*1.25; ones(13,1)*1.5; ones(15,1)*1.75; ones(14,1)*2; ones(15,1)*2.25;...
-    ones(12,1)*2.5; ones(7,1)*0.25; ones(5,1)*0.5; ones(5,1)*0.75];
+% 2nd filiming
+%ytemp = [ones(7,1)*0.25; ones(7,1)*0.5; ones(7,1)*0.75; ones(12,1)*1;...
+%    ones(12,1)*1.25; ones(13,1)*1.5; ones(15,1)*1.75; ones(14,1)*2; ones(15,1)*2.25;...
+%    ones(12,1)*2.5; ones(7,1)*0.25; ones(5,1)*0.5; ones(5,1)*0.75];
 
-for movieNum = 79%74:numel(movies)
+% 3rd filming
+ytemp = [ones(10,1)*0.25; ones(10,1)*0.5; ones(12,1)*0.75; ones(11,1)*1;...
+    ones(12,1)*1.25; ones(13,1)*1.5; ones(11,1)*1.75; ones(12,1)*2; ones(12,1)*2.25;...
+    ones(10,1)*2.5];
+QCdata = struct([]);
+for movieNum = 70:93 %1:numel(movies)
     
-    [S, Sp, QCdata, dt] = PullFramesFromMov(video_folder,movieNum,movies);
+    [S, Sp, QCdata, dt] = PullFramesFromMov(video_folder,movieNum,movies,QCdata);
     % stores frames in a structure (S: grayscale; Sp: invert of S)
     % QCdata.SpDiffNorm: norm of difference between consecutive frames
     
@@ -120,8 +126,8 @@ for movieNum = 79%74:numel(movies)
         xlab = xlabel('Frame');
         set(xlab,'interpreter','Latex','FontSize',10)
             
-%         print(['./Figures/jpegs/DurationCheck/durationCheck' movies(movieNum).name(end-7:end-4)],...
-%             '-djpeg','-r600')
+         print(['./Figures/jpegs/DurationCheck/durationCheck' movies(movieNum).name(end-7:end-4)],...
+            '-djpeg','-r600')
         
         %Figure for velocity check
         fig2 = figure;%('visible', 'off');
@@ -129,8 +135,8 @@ for movieNum = 79%74:numel(movies)
         subplot(2,2,2);imshow(QCdata(movieNum).Im2);
         subplot(2,2,3);imshow(QCdata(movieNum).BW1fill);
         subplot(2,2,4);imshow(QCdata(movieNum).BW2fill);
-%         print(['./Figures/jpegs/VelocityCheck/velCheck' movies(movieNum).name(end-7:end-4)],...
-%             '-djpeg','-r600')
+         print(['./Figures/jpegs/VelocityCheck/velCheck' movies(movieNum).name(end-7:end-4)],...
+             '-djpeg','-r600')
         
         %Figure for ruler check
         fig3 = figure;%('visible', 'off');
@@ -149,18 +155,19 @@ for movieNum = 79%74:numel(movies)
         imshow(runningMaxBack)
         hold on;
         plot(xRight,1:length(xRight),'r','linewidth',1)
-%         print(['./Figures/jpegs/RulerCheck/RulerLength' movies(movieNum).name(end-7:end-4)],'-djpeg','-r600')
+         print(['./Figures/jpegs/RulerCheck/RulerLength' movies(movieNum).name(end-7:end-4)],'-djpeg','-r600')
         
-%         close all;
+         close all;
     end
     %%
 end
 toc
 
 if saveQCdata
-    save('QCdata.mat','QCdata')
+    save('QCdata_3rdFilm.mat','QCdata')
 end
 
 if saveFeatures
-    save('FitData.mat','X','y')
+    save('FitData_3rdFilm.mat','X','y')
 end
+ 

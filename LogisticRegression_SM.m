@@ -99,3 +99,23 @@ set(gca,'FontSize',6,'ylim',[0 3])
 % print('./Figures/eps/WriteUp/classificationError','-depsc')
 % print('./Figures/jpegs/WriteUp/classificationError','-djpeg','-r600')
 
+fig3 = figure;%('visible', 'off');
+fig3.PaperUnits = 'centimeters';
+fig3.PaperPosition = [0 0 8 4];
+set(gca,'box','on')
+
+plot(y(~predLogical),X(~predLogical,4),'k.','markersize',5)
+hold
+plot(y(predLogical),X(predLogical,4),'r.','markersize',5)
+
+ylab = ylabel('physics volume');
+set(ylab,'interpreter','Latex','FontSize',8)
+xlab = xlabel('actual volume');
+set(xlab,'interpreter','Latex','FontSize',8)
+set(gca,'FontSize',6)
+leg = legend('correct classification', 'misclassification');
+set(leg,'interpreter','Latex','FontSize',6)
+print('./Figures/eps/WriteUp/classificationError2','-depsc')
+print('./Figures/jpegs/WriteUp/classificationError2','-djpeg','-r600')
+
+

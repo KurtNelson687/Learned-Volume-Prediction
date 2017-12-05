@@ -47,5 +47,9 @@ numPix = sqrt((xRight(tape1End)-xRight(tape2Start))^2+(tape1End-tape2Start)^2);
 %Computes pixel length
 lenPerPix = rulerLength/numPix;
 
+if isnan(lenPerPix)
+    lenPerPix = QCdata(movieNum-1).lenPerPix;
+end
+
 %stores tape column index for use in IsolateStreamEdges
 tapeColumnInd = xRight(tape2Start);
