@@ -1,10 +1,12 @@
 clear;clc;close all;
-load('FitData_usable.mat')
+load('data.mat')
+
+RoundPrediction = 0; % choose to round the output of linear regression
 
 %% create possible feature sets
 % Rename and remove intercept feature
-X=Xgood(:,2:end);
-y=ygood;
+X=X_train(:,2:end);
+y=y_train;
 y = y';
 
 %Adds columns to X so that all second order terms of original features are included
@@ -39,36 +41,7 @@ sse1 = min(history1.Crit)/1; % sum of squared error from the best fit (sse=mse, 
 sse2 = min(history2.Crit); % sum of squared error from the best fit
 
 % %% Compute the mean squared error predicted from physics and model (note: for the model it should be the same as above)
-Xfeatures = X(:,[1;2;3;7;4]); %Extracting only features we want
-% for i = 1:mAll
-%     i
-%     %For physics prediction
-%     Vol = X(:,4);
-%     Vol(i)=NaN;
-%     Vol = Vol(~isnan(Vol));
-%     
-%     ytrain = y;
-%     ytrain(i)=NaN;
-%     ytrain = ytrain(~isnan(ytrain));
-%     
-%     scale = nanmean(ytrain./Vol); %Scaling for physics prediction
-%     yPhs = scale*X(i,4);
-%     physicsError(i) = mean((y(i)-yPhs).^2);
-%     
-%     %For model
-%     Xtrain = Xfeatures;
-%     Xtrain(i,:)=NaN;
-%     Xtrain = Xtrain(~isnan(Xtrain(:,1)),:);
-%    
-%     
-%     Xtest = Xfeatures(i,:);
-%     
-%      mdl = fitlm(Xtrain,ytrain,'linear');
-%      ypredTest = predict(mdl,Xtest);
-%      modelError(i) = mean((y(i)-ypredTest).^2);
-% end
-% MSE_physics = mean(physicsError);
-% MSE_model = mean(modelError);
+Xfeatures = X(:,[1;2;3;5;9;10]); %Extracting only features we want
 
 %% Use crossval command instead to find MSE of linear regression model
 % use all suggested features with linear regression + cv
@@ -88,7 +61,10 @@ MSE_wtLS = mean(val_wtLS);
 %% Training vs test error for different dataset sizes for both physics and OLS prediction
 %%Here I am only using features 1 through 3, 7, and 4. These were selected
 %%based on the feature selection above
-sampleSizesTested = 20:10:100;
+%%(edited): after collecting more data features 1 through 5,9,and10 gave
+%%the lowest cv error
+
+sampleSizesTested = 20:20:180;
 
 count =1;
 for numTrys = 1:1000 %Does splitting multiple times because initial error is sensitive to 
@@ -109,6 +85,10 @@ for numTrys = 1:1000 %Does splitting multiple times because initial error is sen
         mdl = fitlm(Xtrain,ytrain,'linear');
         ypredTest = predict(mdl,Xtest);
         ypredTrain = predict(mdl,Xtrain);
+        if RoundPrediction
+            ypredTest  = round(4*ypredTest)/4;
+            ypredTrain = round(4*ypredTrain)/4;
+        end
         
         trainError(count,numTrys) = mean((ytrain-ypredTrain).^2);
         testError(count,numTrys)  = mean((ytest-ypredTest).^2);
