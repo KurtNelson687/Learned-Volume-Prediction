@@ -83,6 +83,31 @@ N2 = round(length(RedStreamIm)/2);
                   ylabel('Pixels')
 
 
+%% All stuff below is after milestone and for final
+
+%% check to make sure training data is representative of the total population
+clear;
+set(0,'DefaultAxesFontSize',18);
+
+load('data.mat')
+
+figure;subplot(2,2,1);plot(y_train,X_train(:,2),'.k','markersize',20);hold on;
+       ylabel('Duration (s)');
+       subplot(2,2,2);plot(y_train,X_train(:,3),'.k','markersize',20);hold on;
+       ylabel('Front Speed (cm/s)');
+       subplot(2,2,3);plot(y_train,X_train(:,4),'.k','markersize',20);hold on;
+       ylabel('Area (cm^2)');xlabel('Actual Volume Poured (cups)');
+       subplot(2,2,4);plot(y_train,X_train(:,5),'.k','markersize',20);hold on;
+       ylabel('Volume Proxy (cm^3)');
+       
+       subplot(2,2,1);plot(y_test,X_test(:,2),'.r','markersize',20);hold on;
+       legend('Training Data','Test Data','location','NW')
+       subplot(2,2,2);plot(y_test,X_test(:,3),'.r','markersize',20);hold on;
+       subplot(2,2,3);plot(y_test,X_test(:,4),'.r','markersize',20);hold on;
+       subplot(2,2,4);plot(y_test,X_test(:,5),'.r','markersize',20);hold on;
+       
+       
+
 
 
 
