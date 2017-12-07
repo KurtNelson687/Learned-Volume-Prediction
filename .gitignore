@@ -8,6 +8,8 @@
 !/Classification/*
 !/Regression/*
 !/DataFiles/*
+!/Milestone/*
 !/data.mat
 !/FitData_All.mat
 !/MovieLabel_All.mat
+!/*.docx
