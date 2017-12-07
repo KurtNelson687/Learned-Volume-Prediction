@@ -1,5 +1,6 @@
 clear;clc;close all;
-load('data.mat')
+load('../DataFiles/data.mat')
+addpath('./functions');
 
 RoundPrediction = 0; % choose to round the output of linear regression
 
@@ -25,22 +26,23 @@ X(:,10) = X(:,2).*X(:,3); %front speed and area
 numKfold = mAll;      % LOOCV: k=m
 featuresIn = [1,2,3]; % features forced to be included in fit (Hierarchical principle)
 
-%Perform feature selection and require that all of the original features are included
+%Perform feature selection and requires that all of the original features are included
 opts = statset('display','iter');
 [fs1,history1] = sequentialfs(@OLSfit,X,y,'cv',numKfold,...
     'keepin',featuresIn,'nfeatures',nAll,'options',opts);
-sse1 = min(history1.Crit)/1; % sum of squared error from the best fit (sse=mse, since 1 test point)
-% Sequential feature selection: performs cross-val on numKfolds, forces
-% alg. to keep in the 3 fundamental features, makes sure the alg. performs
-% over all possible features (doesn't stop at a local min), and display
-% information at each sequential iteration. 
+sse1 = min(history1.Crit); % sum of squared error from the best fit  
 
 %Perform feature selection with no requirments
 [fs2,history2] = sequentialfs(@OLSfit,X,y,'cv',numKfold,...
     'nfeatures',nAll,'options',opts);
 sse2 = min(history2.Crit); % sum of squared error from the best fit
 
-% %% Compute the mean squared error predicted from physics and model (note: for the model it should be the same as above)
+% %Perform feature selection for lasso regression
+% [fs3,history3] = sequentialfs(@Lassofit,X,y,'cv',numKfold,...
+%     'nfeatures',nAll,'options',opts);
+% sse3 = min(history3.Crit); % sum of squared error from the best fit
+
+% Compute the mean squared error predicted from physics and model (note: for the model it should be the same as above)
 Xfeatures = X(:,[1;2;3;5;9;10]); %Extracting only features we want
 
 %% Use crossval command instead to find MSE of linear regression model
@@ -61,7 +63,7 @@ MSE_wtLS = mean(val_wtLS);
 %% Training vs test error for different dataset sizes for both physics and OLS prediction
 %%Here I am only using features 1 through 3, 7, and 4. These were selected
 %%based on the feature selection above
-%%(edited): after collecting more data features 1 through 5,9,and10 gave
+%%(edited): after collecting more data features 1 through 5,9,and 10 gave
 %%the lowest cv error
 
 sampleSizesTested = 20:20:180;
