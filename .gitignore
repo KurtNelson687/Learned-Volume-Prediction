@@ -4,3 +4,6 @@
 # ... but the following
 !/*.m
 !/movieLabel.mat
+!/FeatureExtraction/*
+!/Classification/*
+!/Regression/*
