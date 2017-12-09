@@ -2,6 +2,9 @@ clear;clc;close all;
 load('../DataFiles/data.mat')
 addpath('./functions');
 
+%This is the tpye of model to test - available options: 'OLS', 'Lasso',
+%'Ridge', 'wt_local', 'wt_percentDiff'
+modelType = 'wt_percentDiff';
 RoundPrediction = 0; % choose to round the output of linear regression
 
 %% create possible feature sets
@@ -23,41 +26,48 @@ X(:,10) = X(:,2).*X(:,3); %front speed and area
 
 %% Perform Feature selection using linear regression and LOOCV
 % Model feature selection performing k-fold cross validation
-numKfold = mAll;      % LOOCV: k=m
+numKfold = 10;      % LOOCV: k=m
 featuresIn = [1,2,3]; % features forced to be included in fit (Hierarchical principle)
 
-%Perform feature selection and requires that all of the original features are included
+% %Perform feature selection and requires that all of the original features are included
 opts = statset('display','iter');
-[fs1,history1] = sequentialfs(@OLSfit,X,y,'cv',numKfold,...
+switch modelType
+    case 'OLS'
+        model = @OLSfit;
+    case 'Lasso'
+        model = @Lassofit;
+    case 'Ridge'
+        model = @Ridgefit;
+    case 'wt_local'
+        model = @wt_local_fit;
+    case 'wt_percentDiff'
+        model = @wt_percentDiff_fit;
+    otherwise
+        warning('Unexpected model type!')
+end
+
+[fs1,history1] = sequentialfs(model,X,y,'cv',numKfold,...
     'keepin',featuresIn,'nfeatures',nAll,'options',opts);
-sse1 = min(history1.Crit); % sum of squared error from the best fit  
+sse1 = min(history1.Crit); % sum of squared error from the best fit
 
 %Perform feature selection with no requirments
-[fs2,history2] = sequentialfs(@OLSfit,X,y,'cv',numKfold,...
+[fs2,history2] = sequentialfs(model,X,y,'cv',numKfold,...
     'nfeatures',nAll,'options',opts);
 sse2 = min(history2.Crit); % sum of squared error from the best fit
 
-% %Perform feature selection for lasso regression
-% [fs3,history3] = sequentialfs(@Lassofit,X,y,'cv',numKfold,...
-%     'nfeatures',nAll,'options',opts);
-% sse3 = min(history3.Crit); % sum of squared error from the best fit
-
 % Compute the mean squared error predicted from physics and model (note: for the model it should be the same as above)
-Xfeatures = X(:,[1;2;3;5;9;10]); %Extracting only features we want
+[minCV, indMinCV] = min(history1.Crit);
+Xfeatures = X(:,history1.In(indMinCV,:)); %Extracting only features we want
 
-%% Use crossval command instead to find MSE of linear regression model
-% use all suggested features with linear regression + cv
-val_OLS = crossval(@OLSfit,Xfeatures,y,'leaveout',1);
-MSE_OLS = mean(val_OLS);
-
-% use just volume estimate with lin reg + cv
-Vol = X(:,4); % volume feature
-val_phys = crossval(@PhysMdl,Vol,y,'leaveout',1);
-MSE_phys = mean(val_phys);
-
-% use all suggested features with weighted linear regression + cv
-val_wtLS = crossval(@wtLSfit,Xfeatures,y,'leaveout',1);
-MSE_wtLS = mean(val_wtLS);
+% %% Use crossval command instead to find MSE of linear regression model
+% % use all suggested features with linear regression + cv
+% val_model = crossval(model,Xfeatures,y,'leaveout',1);
+% MSE_model = mean(val_model);
+%
+% % use just volume estimate with lin reg + cv
+% Vol = X(:,4); % volume feature
+% val_phys = crossval(@PhysMdl,Vol,y,'leaveout',1);
+% MSE_phys = mean(val_phys);
 
 
 %% Training vs test error for different dataset sizes for both physics and OLS prediction
@@ -66,10 +76,11 @@ MSE_wtLS = mean(val_wtLS);
 %%(edited): after collecting more data features 1 through 5,9,and 10 gave
 %%the lowest cv error
 
-sampleSizesTested = 20:20:180;
+sampleSizesTested = 20:10:length(y);
 
 count =1;
-for numTrys = 1:1000 %Does splitting multiple times because initial error is sensitive to 
+for numTrys = 1:1000 %Does splitting multiple times because initial error is sensitive to
+    numTrys
     count =1;
     for sampleSize = sampleSizesTested
         [Xsubset,idx] = datasample(Xfeatures,sampleSize,'replace',false);
@@ -84,13 +95,31 @@ for numTrys = 1:1000 %Does splitting multiple times because initial error is sen
         ytest = ysubset(testInd,:);
         
         %fit linear model with volume interaction and squared area
-        mdl = fitlm(Xtrain,ytrain,'linear');
-        ypredTest = predict(mdl,Xtest);
-        ypredTrain = predict(mdl,Xtrain);
-        if RoundPrediction
-            ypredTest  = round(4*ypredTest)/4;
-            ypredTrain = round(4*ypredTrain)/4;
+        switch modelType
+            case 'OLS'
+                mdl = fitlm(Xtrain,ytrain,'linear');
+                ypredTest = predict(mdl,Xtest);
+                ypredTrain = predict(mdl,Xtrain);
+            case 'Lasso'
+                [B,FitInfo] = lasso(Xtrain,ytrain,'CV',10);      % train and create a linear regression model
+                ypredTest = Xtest*B(:,FitInfo.Index1SE)+FitInfo.Intercept(FitInfo.Index1SE);
+                ypredTrain = Xtrain*B(:,FitInfo.Index1SE)+FitInfo.Intercept(FitInfo.Index1SE);
+            case 'Ridge'
+                
+            case 'wt_local'
+                
+            case 'wt_percentDiff'
+                mdl = fitlm(Xtrain,ytrain,'linear','weights',ytrain);
+                ypredTest = predict(mdl,Xtest);
+                ypredTrain = predict(mdl,Xtrain);
+            otherwise
+                warning('Unexpected model type!')
         end
+        
+        %         if RoundPrediction
+        %             ypredTest  = round(4*ypredTest)/4;
+        %             ypredTrain = round(4*ypredTrain)/4;
+        %         end
         
         trainError(count,numTrys) = mean((ytrain-ypredTrain).^2);
         testError(count,numTrys)  = mean((ytest-ypredTest).^2);
