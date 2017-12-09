@@ -2,9 +2,9 @@ clear;clc;close all;
 load('../DataFiles/data.mat')
 addpath('./functions');
 
-%This is the tpye of model to test - available options: 'OLS', 'Lasso',
-%'Ridge', 'wt_local', 'wt_percentDiff'
-modelType = 'wt_percentDiff';
+%This is the tpye of model to test - currently available options: 'OLS',
+%'Lasso', 'wt_percentDiff', and 'wt_local'
+modelType = 'OLS';
 RoundPrediction = 0; % choose to round the output of linear regression
 
 %% create possible feature sets
@@ -36,12 +36,10 @@ switch modelType
         model = @OLSfit;
     case 'Lasso'
         model = @Lassofit;
-    case 'Ridge'
-        model = @Ridgefit;
-    case 'wt_local'
-        model = @wt_local_fit;
     case 'wt_percentDiff'
         model = @wt_percentDiff_fit;
+    case 'wt_local'
+        model = @wt_local_fit;
     otherwise
         warning('Unexpected model type!')
 end
@@ -97,21 +95,26 @@ for numTrys = 1:1000 %Does splitting multiple times because initial error is sen
         %fit linear model with volume interaction and squared area
         switch modelType
             case 'OLS'
-                mdl = fitlm(Xtrain,ytrain,'linear');
-                ypredTest = predict(mdl,Xtest);
-                ypredTrain = predict(mdl,Xtrain);
+                SSE_test = OLSfit(Xtrain,ytrain,Xtest,ytest);
+                SSE_train = OLSfit(Xtrain,ytrain,Xtrain,ytrain);
+                %mdl = fitlm(Xtrain,ytrain,'linear');
+                %ypredTest = predict(mdl,Xtest);
+                %ypredTrain = predict(mdl,Xtrain);
             case 'Lasso'
-                [B,FitInfo] = lasso(Xtrain,ytrain,'CV',10);      % train and create a linear regression model
-                ypredTest = Xtest*B(:,FitInfo.Index1SE)+FitInfo.Intercept(FitInfo.Index1SE);
-                ypredTrain = Xtrain*B(:,FitInfo.Index1SE)+FitInfo.Intercept(FitInfo.Index1SE);
-            case 'Ridge'
-                
-            case 'wt_local'
-                
+                SSE_test = Lassofit(Xtrain,ytrain,Xtest,ytest);
+                SSE_train = Lassofit(Xtrain,ytrain,Xtrain,ytrain);
+                %[B,FitInfo] = lasso(Xtrain,ytrain,'CV',10);      % train and create a linear regression model
+                %ypredTest = Xtest*B(:,FitInfo.Index1SE)+FitInfo.Intercept(FitInfo.Index1SE);
+                %ypredTrain = Xtrain*B(:,FitInfo.Index1SE)+FitInfo.Intercept(FitInfo.Index1SE);
             case 'wt_percentDiff'
-                mdl = fitlm(Xtrain,ytrain,'linear','weights',ytrain);
-                ypredTest = predict(mdl,Xtest);
-                ypredTrain = predict(mdl,Xtrain);
+                SSE_test = wt_percentDiff_fit(Xtrain,ytrain,Xtest,ytest);
+                SSE_train = wt_percentDiff_fit(Xtrain,ytrain,Xtrain,ytrain);
+                %mdl = fitlm(Xtrain,ytrain,'linear','weights',ytrain);
+                %ypredTest = predict(mdl,Xtest);
+                %ypredTrain = predict(mdl,Xtrain);    
+            case 'wt_local'
+                SSE_test = wt_local_fit(Xtrain,ytrain,Xtest,ytest);
+                SSE_train = wt_local_fit(Xtrain,ytrain,Xtrain,ytrain);
             otherwise
                 warning('Unexpected model type!')
         end
@@ -120,9 +123,13 @@ for numTrys = 1:1000 %Does splitting multiple times because initial error is sen
         %             ypredTest  = round(4*ypredTest)/4;
         %             ypredTrain = round(4*ypredTrain)/4;
         %         end
-        
-        trainError(count,numTrys) = mean((ytrain-ypredTrain).^2);
-        testError(count,numTrys)  = mean((ytest-ypredTest).^2);
+%         trainError(count,numTrys) = mean((ytrain-ypredTrain).^2);
+%         testError(count,numTrys)  = mean((ytest-ypredTest).^2);
+        [mtrain,ntrain] = size(Xtrain);
+        [mtest,ntest] = size(Xtest);
+
+        trainError(count,numTrys) = SSE_train/mtrain;
+        testError(count,numTrys)  = SSE_test/mtest;
         count = count+1;
     end
 end
