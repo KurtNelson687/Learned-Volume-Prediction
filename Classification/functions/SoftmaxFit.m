@@ -16,5 +16,5 @@ prob = mnrval(B,X_test,'model','ordinal');
 [~,ypred] = max(prob,[],2); % column index corresponds to category index
 
 % error: ratio of wrongly categorized data
-criterion = sum(y_test~=ypred);
+criterion = sum(y_test(:)~=ypred(:));
 end

@@ -4,6 +4,6 @@ function criterion = LDAfit(X_train,y_train,X_test,y_test)
 lda = fitcdiscr(X_train,y_train,'DiscrimType','linear'); %  GDA, assumes normal distribution
 [ypred,~,~] = predict(lda,X_test);
 
-criterion = sum(y_test~=ypred);
+criterion = sum(y_test(:)~=ypred(:));
 end
 
