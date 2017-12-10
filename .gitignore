@@ -1,17 +1,2 @@
 # Add any directories, files, or patterns you don't want to be tracked by version control
 # ignore everything ...
-/*
-# ... but the following
-!/*.m
-!/movieLabel.mat
-!/FeatureExtraction/*
-!/Classification/*
-!/Classification/**/*
-!/Regression/*
-!/Regression/functions/*
-!/DataFiles/*
-!/Milestone/*
-!/data.mat
-!/FitData_All.mat
-!/MovieLabel_All.mat
-!/*.docx
