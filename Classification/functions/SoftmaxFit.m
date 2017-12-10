@@ -1,4 +1,4 @@
-function criterion = LogisticFit_SM(X_train,y_train,X_test,y_test)
+function criterion = SoftmaxFit(X_train,y_train,X_test,y_test)
 % for input data:
 % X is nxp. n observations, p features
 % y is nx1. n observations. each value is scalar from 1:k. k possible categories.
@@ -15,5 +15,6 @@ prob = mnrval(B,X_test,'model','ordinal');
 % Choose category with highest probability
 [~,ypred] = max(prob,[],2); % column index corresponds to category index
 
-criterion = sum(y_test~=ypred)/length(ypred);
+% error: ratio of wrongly categorized data
+criterion = sum(y_test~=ypred);
 end
