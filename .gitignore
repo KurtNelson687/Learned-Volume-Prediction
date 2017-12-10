@@ -6,7 +6,9 @@
 !/movieLabel.mat
 !/FeatureExtraction/*
 !/Classification/*
+!/Classification/**/*
 !/Regression/*
+!/Regression/**/*
 !/DataFiles/*
 !/Milestone/*
 !/data.mat
