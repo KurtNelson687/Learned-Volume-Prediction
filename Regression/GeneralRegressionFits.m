@@ -4,7 +4,7 @@ addpath('./functions');
 
 %This is the tpye of model to test - currently available options: 'OLS',
 %'Lasso', 'wt_percentDiff', and 'wt_local'
-modelType = 'OLS';
+modelType = 'wt_local';
 RoundPrediction = 0; % choose to round the output of linear regression
 
 %% create possible feature sets
@@ -151,8 +151,8 @@ set(xlab,'interpreter','Latex','FontSize',8)
 set(gca,'FontSize',6)
 leg = legend('Enforcing hierarchical principle', 'Unrestricted');
 set(leg,'interpreter','Latex','FontSize',6)
-% print('./Figures/eps/WriteUp/featureSelection','-depsc')
-% print('./Figures/jpegs/WriteUp/featureSelection','-djpeg','-r600')
+%print('./Figures/eps/featureSelectionLasso','-depsc')
+%print('./Figures/jpegs/featureSelectionLasso','-djpeg','-r600')
 
 
 fig2 = figure;%('visible', 'off');
@@ -169,5 +169,5 @@ set(xlab,'interpreter','Latex','FontSize',8)
 set(gca,'FontSize',6)
 leg = legend('training error', 'test error');
 set(leg,'interpreter','Latex','FontSize',6)
-% print('./Figures/eps/WriteUp/dataSampleSize','-depsc')
-% print('./Figures/jpegs/WriteUp/dataSampleSize','-djpeg','-r600')
+%print('./Figures/eps/dataSampleSizeLasso','-depsc')
+%print('./Figures/jpegs/dataSampleSizeLasso','-djpeg','-r600')
