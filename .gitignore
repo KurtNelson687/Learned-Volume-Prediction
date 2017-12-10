@@ -8,7 +8,7 @@
 !/Classification/*
 !/Classification/**/*
 !/Regression/*
-!/Regression/**/*
+!/Regression/functions/*
 !/DataFiles/*
 !/Milestone/*
 !/data.mat
