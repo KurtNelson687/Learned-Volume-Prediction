@@ -4,7 +4,7 @@ addpath('./functions');
 
 %This is the tpye of model to test - currently available options: 'OLS',
 %'Lasso', 'wt_percentDiff', and 'wt_local'
-modelType = 'Ridge';
+modelType = 'wt_local';
 RoundPrediction = 0; % choose to round the output of linear regression
 
 %% create possible feature sets
