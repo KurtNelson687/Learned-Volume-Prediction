@@ -6,9 +6,9 @@ addpath('./functions');
 % Model Switches (choose 1):
 Softmax             = 0;  % logistic regression
 LDA                 = 0;  % Gaussian discriminant analysis
-SVM                 = 1;  % SVM (doesn't converge for amount of data we have)
+SVM                 = 0;  % SVM (doesn't converge for amount of data we have)
 Regularized_Softmax = 0;  % regularize with L2 norm ()
-K_Nearest_Neighbor = 0;
+K_Nearest_Neighbor  = 1;
 
 % Choose whether to perform error analysis or create a model
 ErrorAnalysis = 1;
@@ -111,49 +111,64 @@ if Softmax
     if ErrorAnalysis
         CatErr_test  = SoftmaxFit(Xtrain,ytrain,Xtest,ytest);
         CatErr_train = SoftmaxFit(Xtrain,ytrain,Xtrain,ytrain);
-    elseif CreateModel
         mdl  = mnrfit(Xtrain,ytrain,'model','ordinal');
         prob = mnrval(mdl,Xtest,'model','ordinal'); % n x k
         [~,ypredTest] = max(prob,[],2);
         prob = mnrval(mdl,Xtrain,'model','ordinal'); % n x k
         [~,ypredTrain] = max(prob,[],2);
+        
+    elseif CreateModel
+        mdl  = mnrfit(Xfeatures,y,'model','ordinal');
+        prob = mnrval(mdl,Xfeatures,'model','ordinal'); % n x k
+        [~,ypredTest_all] = max(prob,[],2);
     end
+    
     
 elseif LDA
     if ErrorAnalysis
         CatErr_test  = LDAfit(Xtrain,ytrain,Xtest,ytest);
         CatErr_train = LDAfit(Xtrain,ytrain,Xtrain,ytrain);
         mdl = fitcdiscr(Xtrain,ytrain,'DiscrimType','linear'); %  GDA, assumes normal distribution
-        [ypredTest,~,~]  = predict(mdl,Xtest);
-        [ypredTrain,~,~] = predict(mdl,Xtrain);
-
+        ypredTest  = predict(mdl,Xtest);
+        ypredTrain = predict(mdl,Xtrain);
+        
     elseif CreateModel
-        mdl = fitcdiscr(Xfeatures,yfeatures,'DiscrimType','linear'); %  GDA, assumes normal distribution
-        [ypredTrain_all,~,~] = predict(mdl,Xfeatures);
+        mdl = fitcdiscr(Xfeatures,y,'DiscrimType','linear'); %  GDA, assumes normal distribution
+        ypredTrain_all = predict(mdl,Xfeatures);
     end
+    
     
 elseif SVM
     if ErrorAnalysis
         CatErr_test = SVMfit(Xtrain,ytrain,Xtest,ytest);
         CatErr_train = SVMfit(Xtrain,ytrain,Xtrain,ytrain);
-    elseif CreateModel
         mdl       = fitcecoc(Xtrain,ytrain,'verbose',2);
         ypredTest = predict(mdl,Xtest);           % use model to predict on new test data
         ypredTest = predict(mdl,Xtrain);           % use model to predict on new test data
+    elseif CreateModel
+        mdl       = fitcecoc(Xfeatures,y,'verbose',2);
+        ypredTest_all = predict(mdl,Xfeatures);           % use model to predict on new test data
     end
+    
+    
 elseif Regularized_Softmax
     
     
 elseif K_Nearest_Neighbor
+    if ErrorAnalysis
         CatErr_test  = KNNfit(Xtrain,ytrain,Xtest,ytest);
         CatErr_train = KNNfit(Xtrain,ytrain,Xtrain,ytrain);
-mdl = fitcknn(X_train,y_train,'Distance','euclidean');
-mdl.NumNeighbors = 4;
-
-[ypred,~,~] = predict(mdl,X_test);
-
-criterion = sum(y_test(:)~=ypred(:));
-
+        mdl = fitcknn(Xtrain,ytrain,'Distance','euclidean');
+        mdl.NumNeighbors = 4;
+        ypredTest  = predict(mdl,Xtest);
+        ypredTrain = predict(mdl,Xtrain);
+    elseif CreateModel
+        mdl = fitcknn(Xtrain,ytrain,'Distance','euclidean');
+        mdl.NumNeighbors = 4;
+        ypredTest_all  = predict(mdl,Xfeatures);
+    end
+    
+    
     
 end
 
@@ -190,7 +205,7 @@ end
 %% plots from original file
 
 % %% plot stuff
-% 
+%
 % fig1 = figure;%('visible', 'off');
 % fig1.PaperUnits = 'centimeters';
 % fig1.PaperPosition = [0 0 8 4];
@@ -207,8 +222,8 @@ end
 % set(leg,'interpreter','Latex','FontSize',6)
 % % print('./Figures/eps/WriteUp/featureSelectionLogistic','-depsc')
 % % print('./Figures/jpegs/WriteUp/featureSelectionLogistic','-djpeg','-r600')
-% 
-% 
+%
+%
 % videoNum = 1:mAll;
 % fig2 = figure;%('visible', 'off');
 % fig2.PaperUnits = 'centimeters';
@@ -217,7 +232,7 @@ end
 % plot(ypred/4,y/4,'k.','markersize',5)
 % hold on;
 % plot(ypred(predLogical)/4,y(predLogical)/4,'r.','markersize',5)
-% 
+%
 % title(['Multinomial Logistic Regression. Training error: ',num2str(error*100),'%'])
 % ylab = ylabel('Poured volume (c)');
 % set(ylab,'interpreter','Latex','FontSize',8)
@@ -228,16 +243,16 @@ end
 % %set(leg,'interpreter','Latex','FontSize',6)
 % % print('./Figures/eps/WriteUp/classificationError','-depsc')
 % % print('./Figures/jpegs/WriteUp/classificationError','-djpeg','-r600')
-% 
+%
 % fig3 = figure;%('visible', 'off');
 % fig3.PaperUnits = 'centimeters';
 % fig3.PaperPosition = [0 0 8 4];
 % set(gca,'box','on')
-% 
+%
 % plot(y(~predLogical),X(~predLogical,4),'k.','markersize',5)
 % hold
 % plot(y(predLogical),X(predLogical,4),'r.','markersize',5)
-% 
+%
 % ylab = ylabel('physics volume');
 % set(ylab,'interpreter','Latex','FontSize',8)
 % xlab = xlabel('actual volume');
@@ -247,7 +262,7 @@ end
 % set(leg,'interpreter','Latex','FontSize',6)
 % print('./Figures/eps/WriteUp/classificationError2','-depsc')
 % print('./Figures/jpegs/WriteUp/classificationError2','-djpeg','-r600')
-% 
+%
 
 
 
