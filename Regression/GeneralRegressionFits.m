@@ -4,7 +4,7 @@ addpath('./functions');
 
 %This is the tpye of model to test - currently available options: 'OLS',
 %'Lasso', 'wt_percentDiff', and 'wt_local'
-modelType = 'wt_local';
+modelType = 'Ridge';
 RoundPrediction = 0; % choose to round the output of linear regression
 
 %% create possible feature sets
@@ -36,6 +36,8 @@ switch modelType
         model = @OLSfit;
     case 'Lasso'
         model = @Lassofit;
+    case 'Ridge'
+        model = @Ridgefit;
     case 'wt_percentDiff'
         model = @wt_percentDiff_fit;
     case 'wt_local'
@@ -77,7 +79,7 @@ Xfeatures = X(:,history1.In(indMinCV,:)); %Extracting only features we want
 sampleSizesTested = 20:10:length(y);
 
 count =1;
-for numTrys = 1:1000 %Does splitting multiple times because initial error is sensitive to
+for numTrys = 1:2000 %Does splitting multiple times because initial error is sensitive to
     numTrys
     count =1;
     for sampleSize = sampleSizesTested
@@ -106,12 +108,12 @@ for numTrys = 1:1000 %Does splitting multiple times because initial error is sen
                 %[B,FitInfo] = lasso(Xtrain,ytrain,'CV',10);      % train and create a linear regression model
                 %ypredTest = Xtest*B(:,FitInfo.Index1SE)+FitInfo.Intercept(FitInfo.Index1SE);
                 %ypredTrain = Xtrain*B(:,FitInfo.Index1SE)+FitInfo.Intercept(FitInfo.Index1SE);
+            case 'Ridge'
+                SSE_test = Ridgefit(Xtrain,ytrain,Xtest,ytest);
+                SSE_train = Ridgefit(Xtrain,ytrain,Xtrain,ytrain);
             case 'wt_percentDiff'
                 SSE_test = wt_percentDiff_fit(Xtrain,ytrain,Xtest,ytest);
                 SSE_train = wt_percentDiff_fit(Xtrain,ytrain,Xtrain,ytrain);
-                %mdl = fitlm(Xtrain,ytrain,'linear','weights',ytrain);
-                %ypredTest = predict(mdl,Xtest);
-                %ypredTrain = predict(mdl,Xtrain);    
             case 'wt_local'
                 SSE_test = wt_local_fit(Xtrain,ytrain,Xtest,ytest);
                 SSE_train = wt_local_fit(Xtrain,ytrain,Xtrain,ytrain);
@@ -119,15 +121,9 @@ for numTrys = 1:1000 %Does splitting multiple times because initial error is sen
                 warning('Unexpected model type!')
         end
         
-        %         if RoundPrediction
-        %             ypredTest  = round(4*ypredTest)/4;
-        %             ypredTrain = round(4*ypredTrain)/4;
-        %         end
-%         trainError(count,numTrys) = mean((ytrain-ypredTrain).^2);
-%         testError(count,numTrys)  = mean((ytest-ypredTest).^2);
         [mtrain,ntrain] = size(Xtrain);
         [mtest,ntest] = size(Xtest);
-
+        
         trainError(count,numTrys) = SSE_train/mtrain;
         testError(count,numTrys)  = SSE_test/mtest;
         count = count+1;
@@ -151,8 +147,8 @@ set(xlab,'interpreter','Latex','FontSize',8)
 set(gca,'FontSize',6)
 leg = legend('Enforcing hierarchical principle', 'Unrestricted');
 set(leg,'interpreter','Latex','FontSize',6)
-%print('./Figures/eps/featureSelectionLasso','-depsc')
-%print('./Figures/jpegs/featureSelectionLasso','-djpeg','-r600')
+print('./Figures/eps/featureSelectionRidge','-depsc')
+print('./Figures/jpegs/featureSelectionRidge','-djpeg','-r600')
 
 
 fig2 = figure;%('visible', 'off');
@@ -169,5 +165,21 @@ set(xlab,'interpreter','Latex','FontSize',8)
 set(gca,'FontSize',6)
 leg = legend('training error', 'test error');
 set(leg,'interpreter','Latex','FontSize',6)
-%print('./Figures/eps/dataSampleSizeLasso','-depsc')
-%print('./Figures/jpegs/dataSampleSizeLasso','-djpeg','-r600')
+print('./Figures/eps/dataSampleSizeRidge','-depsc')
+print('./Figures/jpegs/dataSampleSizeRidge','-djpeg','-r600')
+
+if strcmp(modelType,'Lasso')
+    %Normalize variables
+    [Xfeatures,mu, s] = normalizeVars(Xfeatures);
+    [B,FitInfo] = lasso(Xfeatures,y,'CV',10);
+    
+    fig3 = figure;%('visible', 'off');
+    lassoPlot(B,FitInfo,'PlotType','CV');
+    print('./Figures/eps/LassoCV','-depsc')
+    print('./Figures/jpegs/LassoCV','-djpeg','-r600')
+    
+    fig4 = figure;%('visible', 'off');
+    lassoPlot(B,FitInfo,'PlotType','Lambda','XScale','log');
+    print('./Figures/eps/LassoBetas','-depsc')
+    print('./Figures/jpegs/LassoBetas','-djpeg','-r600')
+end
