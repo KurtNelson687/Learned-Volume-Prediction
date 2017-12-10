@@ -44,6 +44,18 @@ sse2 = min(history2.Crit); % sum of squared error from the best fit
 Xfeatures = X(:,[1;2;3;6;10]); %Extracting only features we want
 % second lowest sse yielding feature set chosen to not overfit
 
+
+
+
+
+
+
+
+
+
+
+
+
 %% use chosen features to create logistic regression model
 B = mnrfit(Xfeatures,y,'model','ordinal'); % multinomial logistic regression
 % assumes natural ordering among the response (ytrain) categories.

@@ -95,7 +95,7 @@ for numTrys = 1:1000 %Does splitting multiple times because initial error is sen
         %fit linear model with volume interaction and squared area
         switch modelType
             case 'OLS'
-                SSE_test = OLSfit(Xtrain,ytrain,Xtest,ytest);
+                SSE_test =  OLSfit(Xtrain,ytrain,Xtest,ytest);
                 SSE_train = OLSfit(Xtrain,ytrain,Xtrain,ytrain);
                 %mdl = fitlm(Xtrain,ytrain,'linear');
                 %ypredTest = predict(mdl,Xtest);

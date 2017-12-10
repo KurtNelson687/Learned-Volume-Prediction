@@ -4,9 +4,9 @@ addpath('./functions');
 
 
 % Model Switches (choose 1):
-Softmax             = 1;  % logistic regression
-LDA                 = 0;  % Gaussian discriminant analysis
-SVM                 = 0;  % SVM (doesn't converge for amount of data we have)
+            Softmax = 1;  % logistic regression
+                LDA = 0;  % Gaussian discriminant analysis
+                SVM = 0;  % SVM (doesn't converge for amount of data we have)
 Regularized_Softmax = 0;  % regularize with L2 norm ()
  K_Nearest_Neighbor = 0;             
                
@@ -14,16 +14,10 @@ Regularized_Softmax = 0;  % regularize with L2 norm ()
  ErrorAnalysis = 1;
  CreateModel   = 0;
  
- 
- 
-%% Checks
 Models = [Softmax, LDA, SVM, Regularized_Softmax, K_Nearest_Neighbor];
+
 if sum(Models)~=1
     error('Choose only 1 model')
-end
-
-if sum([ErrorAnalysis,CreateModel])~=1
-    error('Choose either to analyze or create a model')
 end
 
 
@@ -61,6 +55,7 @@ X(:,10) = X(:,2).*X(:,3); %front speed and area
 [m, n] = size(X);
 
 
+
 %% Perform Feature selection using linear regression and LOOCV
 % Model feature selection performing k-fold cross validation
 numKfold  = 10;       % if using LOOCV, k=m;
@@ -78,10 +73,10 @@ sse1 = min(history1.Crit);  % sum of squared error from the best fit (sse=mse, s
 % over all possible features (doesn't stop at a local min), and display
 % information at each sequential iteration. 
 
-% % Perform feature selection with no requirments 
-% [fs2,history2] = sequentialfs(model,X,y,'cv',numKfold,...
-%     'nfeatures',n,'options',opts);
-% sse2 = min(history2.Crit); % sum of squared error from the best fit
+% Perform feature selection with no requirments 
+[fs2,history2] = sequentialfs(model,X,y,'cv',numKfold,...
+    'nfeatures',n,'options',opts);
+sse2 = min(history2.Crit); % sum of squared error from the best fit
 
 % Compute the mean squared error predicted
 [minCV, indMinCV] = min(history1.Crit);
@@ -104,26 +99,24 @@ ytest = y(testInd,:);
 % Get error of each model, or learn a model for use. 
 if Softmax
     if ErrorAnalysis
-        CatErr_test  = SoftmaxFit(Xtrain,ytrain,Xtest,ytest);
-        CatErr_train = SoftmaxFit(Xtrain,ytrain,Xtrain,ytrain);
+    CatErr_test  = SoftmaxFit(Xtrain,ytrain,Xtest,ytest);
+    CatErr_train = SoftmaxFit(Xtrain,ytrain,Xtrain,ytrain);
     elseif CreateModel
-        B = mnrfit(Xtrain,ytrain,'model','ordinal');
-        prob = mnrval(B,Xtest,'model','ordinal'); % n x k
-        [~,ypredTest] = max(prob,[],2);
-        prob = mnrval(B,Xtrain,'model','ordinal'); % n x k
-        [~,ypredTrain] = max(prob,[],2);
-    end
-    
+    % B = mnrfit(Xtrain,ytrain,'model','ordinal');
+    % prob = mnrval(B,Xtest,'model','ordinal'); % n x k
+    % [~,ypredTest] = max(prob,[],2);
+    % prob = mnrval(B,Xtrain,'model','ordinal'); % n x k
+    % [~,ypredTrain] = max(prob,[],2);
 elseif LDA
-    if ErrorAnalysis
-        CatErr_test  = LDAfit(Xtrain,ytrain,Xtest,ytest);
-        CatErr_train = LDAfit(Xtrain,ytrain,Xtrain,ytrain);
-    elseif CreateModel
-        lda = fitcdiscr(Xtrain,ytrain,'DiscrimType','linear'); %  GDA, assumes normal distribution
-        [ypredTest,~,~]  = predict(lda,Xtest);
-        [ypredTrain,~,~] = predict(lda,Xtrain);
-    end
-    
+    CatErr_test  = LDAfit(Xtrain,ytrain,Xtest,ytest);
+    CatErr_train = LDAfit(Xtrain,ytrain,Xtrain,ytrain);
+    % lda = fitcdiscr(Xtrain,ytrain,'DiscrimType','linear'); %  GDA, assumes normal distribution
+    % [ypredTest,~,~] = predict(lda,Xtest);
+    % [ypredTrain,~,~] = predict(lda,Xtrain);
+
+criterion = sum(~(y_test==ypred));
+
+
 elseif SVM
 
 
@@ -140,8 +133,6 @@ mtest  = size(Xtest,1);
 
 trainError = CatErr_train/mtrain;
 testError  = CatErr_test/mtest;
-
-%% Plot stuff
 
 
 
