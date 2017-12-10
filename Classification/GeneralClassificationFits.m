@@ -39,7 +39,7 @@ elseif Regularized_Softmax
 elseif K_Nearest_Neighbor
     model = @KNNfit;
 else
-    warning('Don''t know what causes this warning')
+    error('Don''t know what causes this error')
 end
 
 
@@ -208,7 +208,7 @@ end
 %
 % fig1 = figure;%('visible', 'off');
 % fig1.PaperUnits = 'centimeters';
-% fig1.PaperPosition = [0 0 8 4];
+% fig1.PaperP osition = [0 0 8 4];
 % set(gca,'box','on')
 % plot(length(featuresIn):nAll,history1.Crit,'linewidth',1)
 % hold
