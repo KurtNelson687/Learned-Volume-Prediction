@@ -157,14 +157,12 @@ elseif Regularized_Softmax
 elseif K_Nearest_Neighbor
     if ErrorAnalysis
         CatErr_test  = KNNfit(Xtrain,ytrain,Xtest,ytest);
-        CatErr_train = KNNfit(Xtrain,ytrain,Xtrain,ytrain);
+        CatErr_train = KNNfit(Xtrain,ytrain,Xtrain,ytrain); % this should always be 0
         mdl = fitcknn(Xtrain,ytrain,'Distance','euclidean');
-        mdl.NumNeighbors = 4;
         ypredTest  = predict(mdl,Xtest);
         ypredTrain = predict(mdl,Xtrain);
     elseif CreateModel
         mdl = fitcknn(Xtrain,ytrain,'Distance','euclidean');
-        mdl.NumNeighbors = 4;
         ypredTest_all  = predict(mdl,Xfeatures);
     end
     

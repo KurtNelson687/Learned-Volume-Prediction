@@ -3,7 +3,7 @@ load('../DataFiles/data.mat')
 addpath('./functions');
 
 %This is the tpye of model to test - currently available options: 'OLS',
-%'Lasso', 'wt_percentDiff', and 'wt_local'
+%'Lasso', 'wt_percentDiff', and 'wt_local', and 'KNN'
 modelType = 'wt_local';
 RoundPrediction = 0; % choose to round the output of linear regression
 
@@ -42,6 +42,8 @@ switch modelType
         model = @wt_percentDiff_fit;
     case 'wt_local'
         model = @wt_local_fit;
+    case 'KNN'
+        model = @KNNfit_reg3;
     otherwise
         warning('Unexpected model type!')
 end
@@ -117,6 +119,9 @@ for numTrys = 1:2000 %Does splitting multiple times because initial error is sen
             case 'wt_local'
                 SSE_test = wt_local_fit(Xtrain,ytrain,Xtest,ytest);
                 SSE_train = wt_local_fit(Xtrain,ytrain,Xtrain,ytrain);
+            case 'KNN'
+                SSE_test  = KNNfit_reg3(Xtrain,ytrain,Xtest,ytest);
+                SSE_train = KNNfit_reg3(Xtrain,ytrain,Xtrain,ytrain);
             otherwise
                 warning('Unexpected model type!')
         end
