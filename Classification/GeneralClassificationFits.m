@@ -7,7 +7,7 @@ addpath('./functions');
 Softmax             = 1;  % logistic regression
 LDA                 = 0;  % Gaussian discriminant analysis
 SVM                 = 0;  % SVM (doesn't converge for amount of data we have)
-Regularized_Softmax = 0;  % regularize with L2 norm ()
+Regularized_Softmax = 0;  % regularize with L2 norm (). Not available yet.
 K_Nearest_Neighbor  = 0;  % KNN using a single neighbor
 
 
