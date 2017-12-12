@@ -1,4 +1,4 @@
-function criterion = KNNfit4(X_train,y_train,X_test,y_test)
+function criterion = KNNfit3(X_train,y_train,X_test,y_test)
 [X_train,y_train,X_test,y_test] = combineThenSplit(X_train,y_train,X_test,y_test);
 %normalize data
 [mTest,nTest]=size(X_test);
@@ -9,7 +9,7 @@ for i = 1:nTest
 end
 
 mdl = fitcknn(X_train,y_train,'Distance','euclidean','BreakTies','nearest');
-mdl.NumNeighbors = 4;
+mdl.NumNeighbors = 3;
 
 [ypred,~,~] = predict(mdl,X_test);
 

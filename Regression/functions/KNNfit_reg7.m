@@ -1,4 +1,4 @@
-function criterion = KNNfit_reg6(X_train,y_train,X_test,y_test)
+function criterion = KNNfit_reg7(X_train,y_train,X_test,y_test)
 
 [mTest,nTest]=size(X_test);
 [X_train,mu, s] = normalizeVars(X_train);
@@ -8,7 +8,7 @@ for i = 1:nTest %normalize test data
 end
 
 % find the nearest neighbor in X_train for each point in X_test
-Ind = knnsearch(X_train,X_test,'k',6);
+Ind = knnsearch(X_train,X_test,'k',7);
 
 ypred = y_train(Ind);
 

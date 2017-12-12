@@ -4,8 +4,9 @@ addpath('./functions');
 
 %This is the tpye of model to test - currently available options: 'OLS',
 %'Lasso', 'wt_percentDiff', and 'wt_local', and 'KNN'
-modelType = 'wt_local';
+modelType = 'Physical';
 RoundPrediction = 0; % choose to round the output of linear regression
+numTrial = 50; %number of trails for each case
 
 %% create possible feature sets
 % Rename and remove intercept feature
@@ -43,23 +44,30 @@ switch modelType
     case 'wt_local'
         model = @wt_local_fit;
     case 'KNN'
-        model = @KNNfit_reg3;
+        model = @KNNfit_reg6;
+    case 'Physical'
+        model = @PhysMdl;
     otherwise
         warning('Unexpected model type!')
 end
 
-[fs1,history1] = sequentialfs(model,X,y,'cv',numKfold,...
-    'keepin',featuresIn,'nfeatures',nAll,'options',opts);
-sse1 = min(history1.Crit); % sum of squared error from the best fit
-
-%Perform feature selection with no requirments
-[fs2,history2] = sequentialfs(model,X,y,'cv',numKfold,...
-    'nfeatures',nAll,'options',opts);
-sse2 = min(history2.Crit); % sum of squared error from the best fit
-
-% Compute the mean squared error predicted from physics and model (note: for the model it should be the same as above)
-[minCV, indMinCV] = min(history1.Crit);
-Xfeatures = X(:,history1.In(indMinCV,:)); %Extracting only features we want
+if ~strcmp(modelType,'Physical')
+    [fs1,history1] = sequentialfs(model,X,y,'cv',numKfold,...
+        'keepin',featuresIn,'nfeatures',nAll,'options',opts);
+    sse1 = min(history1.Crit); % sum of squared error from the best fit
+    
+    %Perform feature selection with no requirments
+    [fs2,history2] = sequentialfs(model,X,y,'cv',numKfold,...
+        'nfeatures',nAll,'options',opts);
+    sse2 = min(history2.Crit); % sum of squared error from the best fit
+    % Compute the mean squared error predicted from physics and model (note: for the model it should be the same as above)
+    [minCV, indMinCV] = min(history1.Crit);
+    Xfeatures = X(:,history1.In(indMinCV,:)); %Extracting only features we want
+else
+    val_model = crossval(model,X(:,4),y,'leaveout',1);
+    MSE_model = mean(val_model);
+    Xfeatures = X(:,4);
+end
 
 % %% Use crossval command instead to find MSE of linear regression model
 % % use all suggested features with linear regression + cv
@@ -101,15 +109,9 @@ for numTrys = 1:2000 %Does splitting multiple times because initial error is sen
             case 'OLS'
                 SSE_test =  OLSfit(Xtrain,ytrain,Xtest,ytest);
                 SSE_train = OLSfit(Xtrain,ytrain,Xtrain,ytrain);
-                %mdl = fitlm(Xtrain,ytrain,'linear');
-                %ypredTest = predict(mdl,Xtest);
-                %ypredTrain = predict(mdl,Xtrain);
             case 'Lasso'
                 SSE_test = Lassofit(Xtrain,ytrain,Xtest,ytest);
                 SSE_train = Lassofit(Xtrain,ytrain,Xtrain,ytrain);
-                %[B,FitInfo] = lasso(Xtrain,ytrain,'CV',10);      % train and create a linear regression model
-                %ypredTest = Xtest*B(:,FitInfo.Index1SE)+FitInfo.Intercept(FitInfo.Index1SE);
-                %ypredTrain = Xtrain*B(:,FitInfo.Index1SE)+FitInfo.Intercept(FitInfo.Index1SE);
             case 'Ridge'
                 SSE_test = Ridgefit(Xtrain,ytrain,Xtest,ytest);
                 SSE_train = Ridgefit(Xtrain,ytrain,Xtrain,ytrain);
@@ -122,6 +124,9 @@ for numTrys = 1:2000 %Does splitting multiple times because initial error is sen
             case 'KNN'
                 SSE_test  = KNNfit_reg3(Xtrain,ytrain,Xtest,ytest);
                 SSE_train = KNNfit_reg3(Xtrain,ytrain,Xtrain,ytrain);
+            case 'Physical'
+                SSE_test  = PhysMdl(Xtrain,ytrain,Xtest,ytest);
+                SSE_train = PhysMdl(Xtrain,ytrain,Xtrain,ytrain);
             otherwise
                 warning('Unexpected model type!')
         end
@@ -170,8 +175,8 @@ set(xlab,'interpreter','Latex','FontSize',8)
 set(gca,'FontSize',6)
 leg = legend('training error', 'test error');
 set(leg,'interpreter','Latex','FontSize',6)
-print('./Figures/eps/dataSampleSizeRidge','-depsc')
-print('./Figures/jpegs/dataSampleSizeRidge','-djpeg','-r600')
+print('./Figures/eps/dataSampleSizePhy','-depsc')
+print('./Figures/jpegs/dataSampleSizePhy','-djpeg','-r600')
 
 if strcmp(modelType,'Lasso')
     %Normalize variables

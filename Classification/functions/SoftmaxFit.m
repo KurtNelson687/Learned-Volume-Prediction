@@ -3,6 +3,9 @@ function criterion = SoftmaxFit(X_train,y_train,X_test,y_test)
 % X is nxp. n observations, p features
 % y is nx1. n observations. each value is scalar from 1:k. k possible categories.
 
+%Splits and recombines data so training set has two of each label
+[X_train,y_train,X_test,y_test] = combineThenSplit(X_train,y_train,X_test,y_test);
+
 % fit coefficients, B for a multinomial logistic regression model
 B = mnrfit(X_train,y_train,'model','ordinal'); 
 % assumes natural ordering among the response (ytrain) categories.

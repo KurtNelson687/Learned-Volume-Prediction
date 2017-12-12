@@ -66,13 +66,13 @@ fig1.PaperPosition = [0 0 8 4];
 set(gca,'box','on')
 semilogx(tuning_all,CV_error,'k')
 hold
-%errorbar(tuning_all,CV_error,sigma,'rx');
+errorbar(tuning_all,CV_error,sigma,'rx');
 semilogx(tuning_all(indMin),MinCVval,'bo','markersize',2)
 
 ylab = ylabel('CV');
 set(ylab,'interpreter','Latex','FontSize',8)
 xlab = xlabel('$\lambda$');
 set(xlab,'interpreter','Latex','FontSize',8)
-set(gca,'FontSize',6,'ylim',[0.019 0.03])
+%set(gca,'FontSize',6,'ylim',[0.019 0.03])
 %print('./Figures/eps/tuningTestRidge','-depsc')
 %print('./Figures/jpegs/tuningTestRidge','-djpeg','-r600')
