@@ -2,12 +2,12 @@ clear;clc;close all;
 load('../DataFiles/data.mat')
 addpath('./functions');
 %% Run parameters
-numTrial = 50; %number of trails for each case
+numTrial = 1; %number of trails for each case
 
 %% Model Switches (choose 1):
-Softmax             = 0;  % logistic regression
+Softmax             = 1;  % logistic regression
 LDA                 = 0;  % Gaussian discriminant analysis
-SVM                 = 1;  % SVM (doesn't converge for amount of data we have)
+SVM                 = 0;  % SVM (doesn't converge for amount of data we have)
 Regularized_Softmax = 0;  % regularize with L2 norm (). Not available yet.
 K_Nearest_Neighbor  = 0;  % KNN using a single neighbor
 
@@ -106,7 +106,7 @@ if SVM==0
     MinDevError95Con = 1.95*MinDevErrorStd/sqrt(numTrial)
     %%%%%NEED to CHNAGE THIS NOW THAT WE ARE RUNNING NUMEROUS TRAILS
     % Compute the mean squared error predicted
-    %[minCV, indMinCV] = min(history1.Crit);
+    [minCV, indMinCV] = min(history1.Crit);
     
     % Extracting features that minimize MSE
     %  Xfeatures = X(:,history1.In(indMinCV,:));
