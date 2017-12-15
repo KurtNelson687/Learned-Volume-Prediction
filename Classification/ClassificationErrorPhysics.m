@@ -31,3 +31,4 @@ for trial = 1:numTest
     error_all(trial) = PhysMdl_log(X_train,y_train,X_test,y_test)/length(testInd);
 end
 MeanError = mean(error_all);
+RMSError  = sqrt(MeanError);
