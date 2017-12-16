@@ -29,7 +29,7 @@ for trial = 1:numTest
     y_train = y(trainInd);
       
     
-    mdl       = fitcecoc(X_train,y_train,'verbose',0);
+    mdl = fitcecoc(X_train,y_train,'verbose',0);
     ypred = predict(mdl,X_test); 
     
     error_all(trial) = sum(y_test(:)~=ypred(:))/length(testInd);

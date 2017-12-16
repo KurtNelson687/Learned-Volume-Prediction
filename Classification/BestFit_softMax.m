@@ -3,7 +3,7 @@
 close all; clear all;
 load('../DataFiles/data.mat')
 addpath('./functions');
-bandwidth = 2.2;
+% bandwidth = 2.2;
 
 %% Perform Feature selection using linear regression and LOOCV
 % Model feature selection performing k-fold cross validation
