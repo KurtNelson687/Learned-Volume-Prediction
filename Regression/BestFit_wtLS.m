@@ -33,9 +33,9 @@ X_train=X_train(:,featuresKeep);
 X_test=X_test(:,featuresKeep);
 
 %%%%%%%%%%%%%Physical Prediction
-scale = nanmean(y_train./X_train(:,4)'); %Scaling for physics prediction
+scale = nanmean(y_train'.*X_train(:,4))/nanmean(X_train(:,4).^2); %Scaling for physics prediction
 ypred = scale*X_test(:,4);
-MSE_physical  = mean((y_test-ypred').^2);
+RMSE_physical  = sqrt(mean((y_test-ypred').^2));
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 [mTest,nTest]=size(X_test);
@@ -60,4 +60,4 @@ for i = 1:mTest %loop through test examples and compute the sum or squared error
     ypred = predict(mdl,X_test(i,:));         % use model to predict on new test data
     SSE =SSE +(y_test(i)-ypred).^2;  % specify the criterion to evaluate model performance. sum of squared error. 
 end
-MSE_wtLS = SSE/mTest;
+RMSE_wtLS = sqrt(SSE/mTest);

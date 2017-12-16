@@ -3,8 +3,8 @@ load('../DataFiles/data.mat')
 addpath('./functions');
 
 %This is the tpye of model to test - currently available options: 'OLS',
-%'Lasso', 'Ridge', 'wt_percentDiff', 'Physical', 'wt_local', and 'KNN'
-modelType = 'wt_local'; %Select model type
+%'Lasso', 'wt_percentDiff', 'Physical', 'wt_local', and 'KNN'
+modelType = 'Physical'; %Select model type
 RoundPrediction = 0; % choose to round the output of linear regression
 testDataSize = 0; % Include data size test or not
 numTrials = 100; % number of trails for each case
@@ -69,7 +69,7 @@ if ~strcmp(modelType,'Physical')
     end
 else
     for trail = 1:numTrials
-        CVerror(trail) = mean(crossval(model,X(:,4),y,'kfold',numKfold)/numKfold);
+        CVerror(trail) = mean(crossval(model,X(:,4),y));
     end
 end
 
@@ -84,13 +84,13 @@ if ~strcmp(modelType,'Physical')
     RMSE_mean = mean(RMSEerror);
     minRMSE =  RMSE_mean(indMin)
     std_RMSE = std(RMSEerror(:,indMin));
-    SE_RMSE =1.95*std_RMSE/sqrt(numTrials)
+    SE_RMSE =std_RMSE/sqrt(numTrials)
     
     Xfeatures = X(:,history1.In(indMin,:));
 else
     [minMSE, indMin] = min(mean(CVerror))
     std_MSE = std(CVerror);
-    SE_MSE = 1.95*std_MSE/sqrt(numTrials)
+    SE_MSE = std_MSE/sqrt(numTrials)
     
     RMSEerror = sqrt(CVerror);
     RMSE_mean = mean(RMSEerror);

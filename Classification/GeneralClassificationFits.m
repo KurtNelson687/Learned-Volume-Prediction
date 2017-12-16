@@ -2,11 +2,11 @@ clear;clc;close all;
 load('../DataFiles/data.mat')
 addpath('./functions');
 %% Run parameters
-numTrial = 1; %number of trails for each case
+numTrial = 100; %number of trails for each case
 
 %% Model Switches (choose 1):
-Softmax             = 1;  % logistic regression
-LDA                 = 0;  % Gaussian discriminant analysis
+Softmax             = 0;  % logistic regression
+LDA                 = 1;  % Gaussian discriminant analysis
 SVM                 = 0;  % SVM (doesn't converge for amount of data we have)
 Regularized_Softmax = 0;  % regularize with L2 norm (). Not available yet.
 K_Nearest_Neighbor  = 0;  % KNN using a single neighbor

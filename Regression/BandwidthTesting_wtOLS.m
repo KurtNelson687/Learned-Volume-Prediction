@@ -26,7 +26,7 @@ X = X(:,Xfeatures);
 [m,n] = size(X);
 perm = randperm(m);
 
-bandwidth_all = [1:0.2:6,10:100];
+bandwidth_all = [1:0.1:6,6:20];
 count= 1;
 for bandwidth = bandwidth_all
     CV_error = 0; %this will store the sum of squared error
@@ -68,15 +68,20 @@ for bandwidth = bandwidth_all
     count = count+1;
 end
 
+[minVal, minInd] = min(CV_error_all);
+minBand = bandwidth_all(minInd);
+
 fig1 = figure;%('visible', 'off');
 fig1.PaperUnits = 'centimeters';
 fig1.PaperPosition = [0 0 8 4];
 set(gca,'box','on')
 plot(bandwidth_all,CV_error_all,'linewidth',1)
-ylab = ylabel('CV');
-set(ylab,'interpreter','Latex','FontSize',8)
+hold
+plot(bandwidth_all(minInd),minVal,'ro','markersize',5)
+ylab = ylabel('$CV_{\mathrm{MSE}}$');
+set(ylab,'interpreter','Latex','FontSize',10)
 xlab = xlabel('$\tau$');
-set(xlab,'interpreter','Latex','FontSize',8)
-set(gca,'FontSize',6)
+set(xlab,'interpreter','Latex','FontSize',10)
+set(gca,'FontSize',8)
 print('./Figures/eps/bandWidthTesting','-depsc')
 print('./Figures/jpegs/bandWidthTesting','-djpeg','-r600')
