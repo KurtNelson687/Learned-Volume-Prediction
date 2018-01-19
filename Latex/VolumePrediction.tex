@@ -11,6 +11,7 @@
 \usepackage{array,multirow}
 \usepackage{multirow}
 \usepackage{tabu}
+\usepackage[table]{xcolor}
 
 \begin{document}
 \twocolumn[{%
@@ -208,16 +209,16 @@ After fitting on all available training data, the test misclassification error w
 \begin{tabular}{c|c|c|c|c|c|c|c|c|c|c|}
 %\multicolumn{9}{r}{Predicted\, \,} \\[1ex]
   \multicolumn{1}{c}{\,} & \multicolumn{1}{c}{$\frac{1}{4}$}& \multicolumn{1}{c}{$\frac{2}{4}$}& \multicolumn{1}{c}{$\frac{3}{4}$}& \multicolumn{1}{c}{$\frac{4}{4}$}& \multicolumn{1}{c}{$\frac{5}{4}$}& \multicolumn{1}{c}{$\frac{6}{4}$}& \multicolumn{1}{c}{$\frac{7}{4}$}& \multicolumn{1}{c}{$\frac{8}{4}$}& \multicolumn{1}{c}{$\frac{9}{4}$}& \multicolumn{1}{c}{$\frac{10}{4}$} \\[1ex] \cline{2-11}
-\multicolumn{1}{c|}{\rule{0pt}{3ex} $\frac{1}{4}$} & 2 & 0& 0& 0& 0& 0& 0& 0& 0& 0 \\[0.5ex] \cline{2-11}
-\multicolumn{1}{c|}{\rule{0pt}{3ex} $\frac{2}{4}$} & 0 & 2& 0& 0& 0& 0& 0& 0& 0& 0 \\[0.5ex] \cline{2-11}
-\multicolumn{1}{c|}{\rule{0pt}{3ex} $\frac{3}{4}$} & 0 & 0& 2& 0& 0& 0& 0& 0& 0& 0 \\[0.5ex] \cline{2-11}
- \multicolumn{1}{c|}{\rule{0pt}{3ex} $\frac{4}{4}$} & 0 & 0& 0& 2& 0& 0& 0& 0& 0& 0 \\[0.5ex] \cline{2-11}
- \multicolumn{1}{c|}{\rule{0pt}{3ex} $\frac{5}{4}$} & 0 & 0& 0& 1& 1& 0& 0& 0& 0& 0 \\[0.5ex] \cline{2-11}
-\multicolumn{1}{c|}{\rule{0pt}{3ex} $\frac{6}{4}$} & 0 & 0& 0& 0& 0& 2& 0& 0& 0& 0 \\[0.5ex] \cline{2-11}
-\multicolumn{1}{c|}{\rule{0pt}{3ex} $\frac{7}{4}$} & 0 & 0& 0& 0& 0& 0& 2& 0& 0& 0 \\[0.5ex] \cline{2-11}
-\multicolumn{1}{c|}{\rule{0pt}{3ex} $\frac{8}{4}$} & 0 & 0& 0& 0& 0& 0& 0& 1& 1& 0 \\[0.5ex] \cline{2-11}
-\multicolumn{1}{c|}{\rule{0pt}{3ex} $\frac{9}{4}$} & 0 & 0& 0& 0& 0& 0& 0& 2& 0& 0 \\[0.5ex] \cline{2-11}
-\multicolumn{1}{c|}{\rule{0pt}{3ex} $\frac{10}{4}$} & 0 & 0& 0& 0& 0& 0& 0& 0& 1& 1 \\[0.5ex] \cline{2-11}
+\multicolumn{1}{c|}{\rule{0pt}{3ex} $\frac{1}{4}$} & \cellcolor{blue!50} 2 & 0& 0& 0& 0& 0& 0& 0& 0& 0 \\[0.5ex] \cline{2-11}
+\multicolumn{1}{c|}{\rule{0pt}{3ex} $\frac{2}{4}$} & 0 & \cellcolor{blue!50} 2& 0& 0& 0& 0& 0& 0& 0& 0 \\[0.5ex] \cline{2-11}
+\multicolumn{1}{c|}{\rule{0pt}{3ex} $\frac{3}{4}$} & 0 & 0& \cellcolor{blue!50} 2& 0& 0& 0& 0& 0& 0& 0 \\[0.5ex] \cline{2-11}
+ \multicolumn{1}{c|}{\rule{0pt}{3ex} $\frac{4}{4}$} & 0 & 0& 0& \cellcolor{blue!50} 2& 0& 0& 0& 0& 0& 0 \\[0.5ex] \cline{2-11}
+ \multicolumn{1}{c|}{\rule{0pt}{3ex} $\frac{5}{4}$} & 0 & 0& 0& \cellcolor{red!25} 1& \cellcolor{blue!25}1& 0& 0& 0& 0& 0 \\[0.5ex] \cline{2-11}
+\multicolumn{1}{c|}{\rule{0pt}{3ex} $\frac{6}{4}$} & 0 & 0& 0& 0& 0& \cellcolor{blue!50} 2& 0& 0& 0& 0 \\[0.5ex] \cline{2-11}
+\multicolumn{1}{c|}{\rule{0pt}{3ex} $\frac{7}{4}$} & 0 & 0& 0& 0& 0& 0& \cellcolor{blue!50} 2& 0& 0& 0 \\[0.5ex] \cline{2-11}
+\multicolumn{1}{c|}{\rule{0pt}{3ex} $\frac{8}{4}$} & 0 & 0& 0& 0& 0& 0& 0& \cellcolor{blue!25} 1&  \cellcolor{red!25} 1& 0 \\[0.5ex] \cline{2-11}
+\multicolumn{1}{c|}{\rule{0pt}{3ex} $\frac{9}{4}$} & 0 & 0& 0& 0& 0& 0& 0&  \cellcolor{red!50} 2& 0& 0 \\[0.5ex] \cline{2-11}
+\multicolumn{1}{c|}{\rule{0pt}{3ex} $\frac{10}{4}$} & 0 & 0& 0& 0& 0& 0& 0& 0&  \cellcolor{red!25} 1& \cellcolor{blue!50} 1 \\[0.5ex] \cline{2-11}
   \end{tabular}
   \caption{Confusion matrix: rows (actual volume) and columns (predicted volume). Results of Softmax test data prediction.}
 \centering
