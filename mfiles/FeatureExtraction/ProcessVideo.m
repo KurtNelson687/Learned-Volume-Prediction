@@ -13,11 +13,6 @@
 % also determines a pixel to length conversion so that all features have
 % units of seconds or cm.
 %
-% Inputs:
-% 1) video_folder - Directory path containing pour videos
-% 2) save_videos - Directory path for where to save QC videos
-% 3) data_folder - Directory path for where to save features
-% 
 % Outputs:
 % 1) FitData.mat - contains features (stored in X) and volumes for each
 % video (stored in y)

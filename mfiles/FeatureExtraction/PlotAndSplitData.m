@@ -5,11 +5,6 @@
 % Purpose: This script removes bad data, creates plots to visulaize the
 % data, then splits good data into training and test data and saves it.
 %
-% Inputs:
-% 1) data_folder - path to where processed data file features are
-% 2) badData - indicies of bad data (this should be automated in the
-% future)
-%
 % Outputs:
 % 1) data.mat - contains test and training data
 %%
@@ -87,7 +82,7 @@ end
 legend('Good Data','Bad Data','First Filming','location','NW')
 xlabel('Actual Volume (cups)')
 
-%% Simple data fitting to see how LSR is doing
+%% Simple data fitting to see how OLS is doing
 %Removing NaN's for Ordinary least squares prediction
 yPhs = yPhs(goodInd);
 Xgood(:,end) = pi/4*Xgood(:,end)*cuppcm3; % convert units for 3-way interaction
