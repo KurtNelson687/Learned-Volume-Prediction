@@ -1,5 +1,24 @@
-
 function[lenPerPix,tapeColumnInd,xRight,tape1End,tape2Start,runningMaxBack] = FindPixelLength(S,QCdata,movieNum,rulerLength)
+% Function: FindPixelLength.m
+%
+% Purpose:  This script finds the right edge of the two pieces of green
+% tape on the ruler, then computes the gap between the two pieces of tape
+% to compute a length to pixel conversion.
+%
+% Inputs:
+% 1) S - color frames of movie
+% 2) QCdata - structure to pixel intensity differnce
+% 3) movieNum - index for movie number being processed
+% 4) rulerLength - length between pieces of green tape on ruler. This is
+% used as the reference length.
+%
+% Outputs:
+% 1) lenPerPix - length per pixel conversion
+% 2) tapeColumnInd - column index for bottom right corner of top tape piece
+% 3) xRight - x coordinate for top tape bottom edge
+% 4) tape1End - y corrdinate for top tape bottom edge
+% 5) tape2Start - y corrdinate for bottom tape top edge
+%%
 runningMax = 30; %number of frames to look over for running max
 redTol = 50; %threshold: defining stream start
 

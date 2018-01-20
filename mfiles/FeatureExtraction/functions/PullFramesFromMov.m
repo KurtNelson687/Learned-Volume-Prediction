@@ -1,8 +1,23 @@
-% this script pulls all of the frames from the .mov file and stores them in
-% a 2 structures. S is a grayscale of original, and Sp is the inverse of S.
 function[S, Sp, QCdata, dt] = PullFramesFromMov(video_folder,movieNum,movies,QCdata)
-
-disp(['Movie ' num2str(movieNum) ' out of ' num2str(numel(movies))])
+% Function: IsolateStreamEdges.m
+%
+% Purpose:  This script pulls all of the frames from the .mov file and
+% stores them in a 2 structures.
+%
+% Inputs:
+% 1) video_folder - path to folder containing videos
+% 2) QCdata - structure to pixel intensity differnce
+% 3) movieNum - index for movie number being processed
+% 4) movies - vector containing movie names in video_folder
+%
+% Outputs:
+% 1) S - color frames of movie
+% 2) Sp - black and white frames of movie
+% 3) QCdata - stores pixel intensity differnce
+% stream enters. Frames show detected edges
+% 4) dt - time between frames
+%%
+disp(['Movie ' num2str(movieNum) ' out of ' num2str(numel(movies))]) %shows movie being processed
 
 % Get movie specs
 vidObj = VideoReader([video_folder movies(movieNum).name]);

@@ -1,9 +1,37 @@
-% This code is modelled after './ProcessPourVideo.m'
-% it takes a list of movies and creates a feature set and response vector
+% Script: ProcessVideo.m
+%
+% Author: Kurt Nelson and Sam Maticka
+%
+% Purpose: This script uses basic image processing to extract three
+% fundamental features (pour duration, front speed, and stream area) from
+% videos of a poured liquid. The script does the following: 1) Finds the
+% start and stop frames of the pour by monitoring pixel intensity
+% differences between images, 2) computes the speed of the stream by
+% tracking the front as it first enters the video, 3) uses edge detection
+% to determine the stream width at multiple heights, which is then averged
+% and squared to estimate the streams cross-sectional area. The script
+% also determines a pixel to length conversion so that all features have
+% units of seconds or cm.
+%
+% Inputs:
+% 1) video_folder - Directory path containing pour videos
+% 2) save_videos - Directory path for where to save QC videos
+% 3) data_folder - Directory path for where to save features
+% 
+% Outputs:
+% 1) FitData.mat - contains features (stored in X) and volumes for each
+% video (stored in y)
+% 2) QCdata.mat -  contains stop and stop indicies and images for stream
+% pour. This is used for data quality control
+%%
 clear;clc;close all
-%25 and 28
+addpath('./functions')
 tic
 
+% Directory paths
+video_folder = '../../../Videos/FilmSession_Dec2/'; % folder storing videos
+save_videos = './Figures/jpegs/'; % path to where videos are saved
+data_folder = '../../DataFiles/'; % path to where features will be saved
 %% Define parameters for processing video
 % Flags
 plotImages   = true;  % plot images
@@ -12,7 +40,7 @@ saveFeatures = false;  % save X and y, which contain features and responses
 
 Nave = 5; % number of frames to averge over for background subtraction
 
-% Threshold values for finding start and stop of stream
+% Threshold valPlaues for finding start and stop of stream
 streamStartThresh = 6;   % threshold: defining stream start
 numStartThresh    = 10;  % # of forward frames streamStartThresh must be exceeded
 valPaperThresh    = 25;  % threshold: finding frame when paper label is moving
@@ -25,7 +53,7 @@ redTol      = 50;
 running     = 30;
 
 % Threshold value for increasing contrast
-contrastThresh = 15; 
+contrastThresh = 15;
 
 % threshold width of stream
 WidthThreshLow  = .12;  % cm, lower limit of lengths to include
@@ -35,54 +63,40 @@ WidthThreshHigh = 3;    % cm, upper limit of lengths. only flag if bigger than t
 se90 = strel('line', 3, 90);
 se0  = strel('line', 3, 0);
 
-% Video Folder location
-video_folder = './FilmSession_Dec2/'; %folder storing videos
+%% Determine videos to be processed
+movies = dir([video_folder '*.MOV']); % identifies all *.MOV files
 
-%% Locate Videos to be processed
-movies = dir([video_folder '*.MOV']); % all *.MOV files
-
-
-%%
-%ytemp = [0.25,0.5,0.5,0.5,0.5,0.75,0.75,0.75,0.75,0.75,1,1,1];
-% 2nd filiming
-%ytemp = [ones(7,1)*0.25; ones(7,1)*0.5; ones(7,1)*0.75; ones(12,1)*1;...
-%    ones(12,1)*1.25; ones(13,1)*1.5; ones(15,1)*1.75; ones(14,1)*2; ones(15,1)*2.25;...
-%    ones(12,1)*2.5; ones(7,1)*0.25; ones(5,1)*0.5; ones(5,1)*0.75];
-
-% 3rd filming
+%% Vector containing
+% vector containing volume for individual volumes tested during
+% experiments. The vector is ordered by time. This should be automated in
+% the future by using computer vision to recognize the volume indicated by
+% the index card used to label each pour.
 ytemp = [ones(10,1)*0.25; ones(10,1)*0.5; ones(12,1)*0.75; ones(11,1)*1;...
     ones(12,1)*1.25; ones(13,1)*1.5; ones(11,1)*1.75; ones(12,1)*2; ones(12,1)*2.25;...
     ones(10,1)*2.5];
-QCdata = struct([]);
-for movieNum = 70:93 %1:numel(movies)
+%% Image processing
+QCdata = struct([]); % initialize structure for storing quality control data
+for movieNum = 1:numel(movies)
     
+    % Extracts movie frames and stores frames in a structure (S: grayscale;
+    % Sp: invert of S). Also computes pixel intensity difference and stores
+    % it in QCdata.SpDiffNorm.
     [S, Sp, QCdata, dt] = PullFramesFromMov(video_folder,movieNum,movies,QCdata);
-    % stores frames in a structure (S: grayscale; Sp: invert of S)
-    % QCdata.SpDiffNorm: norm of difference between consecutive frames
     
-    
-    [QCdata] = FindStartStopIndices(S,QCdata,movieNum,valPaperThresh,valMinThresh,numStartThresh,streamStartThresh,streamEndThresh);
     % Finds 1st 2 frames of stream in view and last frame of stream in view
-    % indS1, indS2, indE1, respectively.
-    % QCdata(movieNum).indexes: contains indices
-    % Saves frames buffering stream start and stop events.
-    % QCdata(movieNum).Im## holds each image
+    % and stores frame indicies in indS1, indS2, indE1, respectively.
+    [QCdata] = FindStartStopIndices(S,QCdata,movieNum,valPaperThresh,valMinThresh,numStartThresh,streamStartThresh,streamEndThresh);
     
-    [Sp,Im1o,Im2o] = RemoveBackground(S, Sp, QCdata, movieNum, Nave);
     % Rewrites Sp after removing background from each frame
-    % stores 1st 2 stream frames Im1o and Im2o for plotting
+    % stores 1st 2 stream frames in Im1o and Im2o for plotting
+    [Sp,Im1o,Im2o] = RemoveBackground(S, Sp, QCdata, movieNum, Nave);
     
+    % Finds length of pixel and location of ruler in frame
     [lenPerPix,tapeColumnInd,xRight,tape1End,tape2Start,runningMaxBack] = FindPixelLength(S,QCdata,movieNum,rulerLength);
     QCdata(movieNum).lenPerPix = lenPerPix;
-    % Finds length of pixel and location of ruler in frame
     
+    % Finds representative area for stream
     [Ls2,RedStreamIm,QCdata,Lall,rowi,coli,points] = IsolateStreamEdges(S, QCdata, movieNum, WidthThreshLow,WidthThreshHigh,contrastThresh,tapeColumnInd,se90,se0,Im1o,Im2o);
-    % average length scale (pixels) squared: Ls2
-    % Final images are stored in new structure, RedStreamIm
-    % Lall, is the length from all frames and all cuts
-    % coli is column index to search to the right of. rowi is the row index
-    % of each slice to take a length from
-    
     
     %% Compute front speed
     [m1,n1] = find(QCdata(movieNum).BW1fill==1);
@@ -115,7 +129,7 @@ for movieNum = 70:93 %1:numel(movies)
         subplot(2,2,1);imshow(QCdata(movieNum).Im0);
         subplot(2,2,2);imshow(QCdata(movieNum).Im1);
         subplot(2,2,3);imshow(QCdata(movieNum).ImE1);
-        subplot(2,2,4); 
+        subplot(2,2,4);
         P = QCdata(movieNum).SpDiffNorm;
         plot(P);
         hold on;
@@ -125,8 +139,8 @@ for movieNum = 70:93 %1:numel(movies)
         set(ylab,'interpreter','Latex','FontSize',10)
         xlab = xlabel('Frame');
         set(xlab,'interpreter','Latex','FontSize',10)
-            
-         print(['./Figures/jpegs/DurationCheck/durationCheck' movies(movieNum).name(end-7:end-4)],...
+        
+        print(['DurationCheck/durationCheck' movies(movieNum).name(end-7:end-4)],...
             '-djpeg','-r600')
         
         %Figure for velocity check
@@ -135,8 +149,8 @@ for movieNum = 70:93 %1:numel(movies)
         subplot(2,2,2);imshow(QCdata(movieNum).Im2);
         subplot(2,2,3);imshow(QCdata(movieNum).BW1fill);
         subplot(2,2,4);imshow(QCdata(movieNum).BW2fill);
-         print(['./Figures/jpegs/VelocityCheck/velCheck' movies(movieNum).name(end-7:end-4)],...
-             '-djpeg','-r600')
+        print(['VelocityCheck/velCheck' movies(movieNum).name(end-7:end-4)],...
+            '-djpeg','-r600')
         
         %Figure for ruler check
         fig3 = figure;%('visible', 'off');
@@ -155,19 +169,18 @@ for movieNum = 70:93 %1:numel(movies)
         imshow(runningMaxBack)
         hold on;
         plot(xRight,1:length(xRight),'r','linewidth',1)
-         print(['./Figures/jpegs/RulerCheck/RulerLength' movies(movieNum).name(end-7:end-4)],'-djpeg','-r600')
+        print(['RulerCheck/RulerLength' movies(movieNum).name(end-7:end-4)],'-djpeg','-r600')
         
-         close all;
+        close all;
     end
     %%
 end
 toc
 
-if saveQCdata
-    save('QCdata_3rdFilm.mat','QCdata')
+if saveQCdata % save QC data
+    save('../../DataFiles/QCdata.mat','QCdata')
 end
 
-if saveFeatures
-    save('FitData_3rdFilm.mat','X','y')
+if saveFeatures % save features
+    save('../../DataFiles/FitData','X','y')
 end
- 
