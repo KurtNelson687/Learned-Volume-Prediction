@@ -1,14 +1,19 @@
-% this script compares the error for using a different number of neighbors
-% to compare against. 1 neighbor is the lowest error
-clear;clc;close all;
-load('../DataFiles/data.mat')
-addpath('./functions');
+% Script: TestNumberOfNeighbors_KNN.m
+%
+% Author: Kurt Nelson and Sam Maticka
+%
+% Purpose: This script compares the classification error from K-nearest
+% neighbors using different number of neighbors. For each k-value tested,
+% forward selection with cross-validation is used to identify the best
+% number of features. Multiple trials are also ran for each k-value because
+% the results are somewhat sensitive to data splitting.
+%% Variables
+numK = 1:8; % number of neighbors to consider
+numTrial = 1:200; % number of trails to run on
+numKfold  = 9; % number of cross-validation folds used in feature selection
+featuresIn = [1,2,3]; % features forced to be included in fit (Hierarchical principle)
 
-numK = 1:8;
-numTrial = 1:50;
-
-%% create possible feature sets
-% Rename and remove intercept feature
+%% Setup data
 X = X_train(:,2:end);
 y = y_train;
 y = y';
@@ -20,30 +25,16 @@ y = y';
     y(i)=[];
  end
 
-%Adds columns to X so that all second order terms of original features are included
-X(:,5) = X(:,1).^2; %square of duration
-X(:,6) = X(:,2).^2; %square of front speed
-X(:,7) = X(:,3).^2; %square of area
-
-%Adds all two-way interaction terms to X
-X(:,8) = X(:,1).*X(:,2); %duration and front speed
-X(:,9) = X(:,1).*X(:,3); %duration and area
-X(:,10) = X(:,2).*X(:,3); %front speed and area
+% Adds columns to X so that all second order terms of original features are included
+X = addInteractions(X);
 [m, n] = size(X);
-
-%% Perform Feature selection using linear regression and LOOCV
-% Model feature selection performing k-fold cross validation
-
-numKfold  = 9;       % if using LOOCV, k=m;
-featuresIn = [1,2,3]; % features forced to be included in fit (Hierarchical principle)
-
-% Perform feature selection and requires that all of the original features are included
+%% Perform Feature selection using cross validation
 opts = statset('display','off');
 
 for trial=numTrial
     trial
     
-    for i=numK
+    for i=numK % run through all models
         if i==1
             model = @KNNfit;
         elseif i==2
@@ -75,6 +66,7 @@ for trial=numTrial
     end
 end
 
+%% Plot classification error vs number of neighbors
 meanMinCV = mean(minCV);
 fig1 = figure;%('visible', 'off');
 fig1.PaperUnits = 'centimeters';
